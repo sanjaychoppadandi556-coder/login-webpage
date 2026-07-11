@@ -1,0 +1,502 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #05070d;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+/* Main page */
+
+.login-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 550px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Space background */
+
+.space-background {
+  position: absolute;
+  inset: 0;
+  z-index: -5;
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 75% 20%,
+      rgba(189, 93, 44, 0.45),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 55% 55%,
+      rgba(55, 82, 130, 0.45),
+      transparent 42%
+    ),
+    linear-gradient(
+      115deg,
+      #03050a 0%,
+      #11131a 38%,
+      #20212a 60%,
+      #0b0b10 100%
+    );
+}
+
+.background-glow {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+
+  width: 55vw;
+  height: 55vw;
+
+  background: radial-gradient(
+    circle,
+    rgba(244, 139, 81, 0.28),
+    rgba(65, 63, 93, 0.13) 38%,
+    transparent 70%
+  );
+
+  filter: blur(20px);
+}
+
+/* Stars */
+
+.stars {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+
+  background-repeat: repeat;
+  pointer-events: none;
+}
+
+.stars-one {
+  opacity: 0.75;
+
+  background-image:
+    radial-gradient(circle, white 1px, transparent 1px),
+    radial-gradient(circle, #bbcaff 1px, transparent 1px);
+
+  background-size:
+    85px 85px,
+    130px 130px;
+
+  background-position:
+    10px 20px,
+    40px 70px;
+
+  animation: moveStars 55s linear infinite;
+}
+
+.stars-two {
+  opacity: 0.42;
+
+  background-image:
+    radial-gradient(circle, #ffffff 1.3px, transparent 1.4px),
+    radial-gradient(circle, #ffc7a0 1px, transparent 1.2px);
+
+  background-size:
+    170px 170px,
+    230px 230px;
+
+  background-position:
+    50px 30px,
+    90px 120px;
+
+  animation: moveStars 80s linear infinite reverse;
+}
+
+@keyframes moveStars {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(180px, 120px, 0);
+  }
+}
+
+/* Planets */
+
+.planet {
+  position: absolute;
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle at 32% 28%,
+      #c7a58d,
+      #5e504d 45%,
+      #14131a 75%
+    );
+
+  box-shadow:
+    inset -15px -18px 25px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(255, 189, 145, 0.18);
+}
+
+.planet-one {
+  top: 12%;
+  right: 12%;
+
+  width: 26px;
+  height: 26px;
+
+  animation: floatingPlanet 7s ease-in-out infinite;
+}
+
+.planet-two {
+  top: 29%;
+  right: 30%;
+
+  width: 13px;
+  height: 13px;
+
+  opacity: 0.8;
+
+  animation: floatingPlanet 9s ease-in-out infinite reverse;
+}
+
+@keyframes floatingPlanet {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* Three.js canvas */
+
+#characterContainer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+}
+
+#characterContainer canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Loader */
+
+.model-loader {
+  position: absolute;
+  z-index: 10;
+
+  top: 50%;
+  left: 25%;
+
+  padding: 10px 16px;
+
+  color: white;
+  font-size: 14px;
+
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(8px);
+
+  transition:
+    opacity 0.4s ease,
+    visibility 0.4s ease;
+}
+
+.model-loader.hide {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Sign-up card */
+
+.signup-card {
+  position: absolute;
+  z-index: 5;
+
+  top: 50%;
+  left: 67%;
+
+  width: min(320px, 38vw);
+  padding: 28px 24px 24px;
+
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 11px;
+
+  box-shadow:
+    0 22px 60px rgba(0, 0, 0, 0.5),
+    0 0 25px rgba(255, 255, 255, 0.18);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transform:
+    translate(-50%, -38%)
+    scale(0.75);
+
+  transition:
+    opacity 0.7s ease,
+    visibility 0.7s ease,
+    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.signup-card.show {
+  opacity: 1;
+  visibility: visible;
+
+  transform:
+    translate(-50%, -50%)
+    scale(1);
+}
+
+.signup-card h1 {
+  margin-bottom: 22px;
+
+  color: #202020;
+  font-size: 29px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Input fields */
+
+.input-box {
+  position: relative;
+  width: 100%;
+  margin-bottom: 13px;
+}
+
+.field-icon {
+  position: absolute;
+  z-index: 2;
+
+  top: 50%;
+  left: 12px;
+
+  color: #969696;
+  font-size: 14px;
+
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.input-box input {
+  width: 100%;
+  height: 43px;
+
+  padding: 0 13px 0 36px;
+
+  color: #242424;
+  font-size: 14px;
+
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid #d4d4d4;
+  border-radius: 5px;
+
+  outline: none;
+
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s ease;
+}
+
+.input-box input::placeholder {
+  color: #a0a0a0;
+}
+
+.input-box input:focus {
+  border-color: #02b9bc;
+
+  box-shadow:
+    0 0 0 3px rgba(2, 185, 188, 0.15);
+
+  transform: translateY(-1px);
+}
+
+.input-box input.error {
+  border-color: #e14242;
+
+  box-shadow:
+    0 0 0 3px rgba(225, 66, 66, 0.12);
+}
+
+/* Next button */
+
+#nextButton {
+  width: 100%;
+  height: 43px;
+  margin-top: 2px;
+
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+
+  background: linear-gradient(
+    135deg,
+    #08cbcd,
+    #02aeb3
+  );
+
+  border: none;
+  border-radius: 5px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 9px 20px rgba(0, 183, 187, 0.3);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+#nextButton:hover {
+  filter: brightness(1.06);
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 12px 25px rgba(0, 183, 187, 0.38);
+}
+
+#nextButton:active {
+  transform: scale(0.98);
+}
+
+#nextButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Message */
+
+.form-message {
+  min-height: 18px;
+  margin-top: 10px;
+
+  font-size: 12px;
+  text-align: center;
+}
+
+.form-message.error {
+  color: #d93838;
+}
+
+.form-message.success {
+  color: #07895e;
+}
+
+/* Card shake */
+
+.signup-card.shake {
+  animation: shakeCard 0.4s ease;
+}
+
+@keyframes shakeCard {
+  0%,
+  100% {
+    margin-left: 0;
+  }
+
+  25% {
+    margin-left: -8px;
+  }
+
+  50% {
+    margin-left: 8px;
+  }
+
+  75% {
+    margin-left: -5px;
+  }
+}
+
+/* Mobile */
+
+@media (max-width: 750px) {
+  .signup-card {
+    top: auto;
+    bottom: 24px;
+    left: 50%;
+
+    width: calc(100% - 36px);
+    max-width: 370px;
+
+    padding: 22px 20px;
+
+    transform:
+      translate(-50%, 35px)
+      scale(0.88);
+  }
+
+  .signup-card.show {
+    transform:
+      translate(-50%, 0)
+      scale(1);
+  }
+
+  .signup-card h1 {
+    margin-bottom: 17px;
+    font-size: 25px;
+  }
+
+  .model-loader {
+    top: 32%;
+    left: 50%;
+  }
+}
+
+@media (max-height: 620px) {
+  .signup-card {
+    padding-top: 18px;
+    padding-bottom: 16px;
+  }
+
+  .signup-card h1 {
+    margin-bottom: 14px;
+    font-size: 24px;
+  }
+
+  .input-box {
+    margin-bottom: 9px;
+  }
+
+  .input-box input,
+  #nextButton {
+    height: 39px;
+  }
+}
