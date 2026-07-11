@@ -26,27 +26,27 @@
 
   <main class="login-page">
 
-    <!-- Space background -->
     <div class="space-background">
       <div class="stars stars-one"></div>
       <div class="stars stars-two"></div>
+      <div class="space-glow blue-glow"></div>
+      <div class="space-glow orange-glow"></div>
       <div class="planet planet-one"></div>
       <div class="planet planet-two"></div>
-      <div class="background-glow"></div>
     </div>
 
-    <!-- Three.js character canvas -->
     <div id="characterContainer"></div>
 
-    <!-- Loading text -->
     <div id="modelLoader" class="model-loader">
       Loading character...
     </div>
 
-    <!-- Sign-up form -->
-    <section id="signupCard" class="signup-card">
-
-      <h1>Sign Up</h1>
+    <section
+      id="signupCard"
+      class="signup-card"
+      aria-labelledby="signupTitle"
+    >
+      <h1 id="signupTitle">Sign Up</h1>
 
       <form id="signupForm" novalidate>
 
@@ -90,7 +90,6 @@
         <p id="formMessage" class="form-message"></p>
 
       </form>
-
     </section>
 
   </main>
