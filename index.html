@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>3D Animated Login Page</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+
+  <main class="login-page">
+
+    <!-- Space background -->
+    <div class="space-background">
+      <div class="stars stars-one"></div>
+      <div class="stars stars-two"></div>
+      <div class="planet planet-one"></div>
+      <div class="planet planet-two"></div>
+      <div class="background-glow"></div>
+    </div>
+
+    <!-- Three.js character canvas -->
+    <div id="characterContainer"></div>
+
+    <!-- Loading text -->
+    <div id="modelLoader" class="model-loader">
+      Loading character...
+    </div>
+
+    <!-- Sign-up form -->
+    <section id="signupCard" class="signup-card">
+
+      <h1>Sign Up</h1>
+
+      <form id="signupForm" novalidate>
+
+        <div class="input-box">
+          <span class="field-icon">♙</span>
+
+          <input
+            id="fullName"
+            type="text"
+            placeholder="Your name"
+            autocomplete="name"
+          >
+        </div>
+
+        <div class="input-box">
+          <span class="field-icon">♙</span>
+
+          <input
+            id="username"
+            type="text"
+            placeholder="User name"
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="input-box">
+          <span class="field-icon">✉</span>
+
+          <input
+            id="email"
+            type="email"
+            placeholder="Email address"
+            autocomplete="email"
+          >
+        </div>
+
+        <button id="nextButton" type="submit">
+          Next
+        </button>
+
+        <p id="formMessage" class="form-message"></p>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
