@@ -13,7 +13,7 @@ body {
 body {
   overflow: hidden;
   font-family: Arial, Helvetica, sans-serif;
-  background: #05070d;
+  background: #050711;
 }
 
 button,
@@ -21,18 +21,16 @@ input {
   font: inherit;
 }
 
-/* Main page */
-
 .login-page {
   position: relative;
   width: 100vw;
   height: 100vh;
-  min-height: 550px;
+  min-height: 560px;
   overflow: hidden;
   isolation: isolate;
 }
 
-/* Space background */
+/* Background */
 
 .space-background {
   position: absolute;
@@ -42,40 +40,57 @@ input {
 
   background:
     radial-gradient(
-      circle at 75% 20%,
-      rgba(189, 93, 44, 0.45),
-      transparent 30%
+      circle at 30% 58%,
+      rgba(24, 94, 186, 0.42),
+      transparent 34%
     ),
     radial-gradient(
-      circle at 55% 55%,
-      rgba(55, 82, 130, 0.45),
-      transparent 42%
+      circle at 75% 22%,
+      rgba(237, 121, 63, 0.38),
+      transparent 27%
     ),
     linear-gradient(
       115deg,
-      #03050a 0%,
-      #11131a 38%,
-      #20212a 60%,
-      #0b0b10 100%
+      #02040a 0%,
+      #090e1a 40%,
+      #151724 68%,
+      #090911 100%
     );
 }
 
-.background-glow {
+.space-glow {
   position: absolute;
-  top: 5%;
-  right: 5%;
+  border-radius: 50%;
+  filter: blur(28px);
+  pointer-events: none;
+}
 
-  width: 55vw;
-  height: 55vw;
+.blue-glow {
+  left: 15%;
+  bottom: 5%;
+
+  width: 52vw;
+  height: 52vw;
 
   background: radial-gradient(
     circle,
-    rgba(244, 139, 81, 0.28),
-    rgba(65, 63, 93, 0.13) 38%,
-    transparent 70%
+    rgba(37, 116, 255, 0.28),
+    transparent 67%
   );
+}
 
-  filter: blur(20px);
+.orange-glow {
+  top: -12%;
+  right: -2%;
+
+  width: 45vw;
+  height: 45vw;
+
+  background: radial-gradient(
+    circle,
+    rgba(255, 133, 77, 0.26),
+    transparent 68%
+  );
 }
 
 /* Stars */
@@ -85,45 +100,44 @@ input {
   inset: -50%;
   width: 200%;
   height: 200%;
-
   background-repeat: repeat;
   pointer-events: none;
 }
 
 .stars-one {
-  opacity: 0.75;
+  opacity: 0.82;
 
   background-image:
-    radial-gradient(circle, white 1px, transparent 1px),
-    radial-gradient(circle, #bbcaff 1px, transparent 1px);
+    radial-gradient(circle, #ffffff 1px, transparent 1.2px),
+    radial-gradient(circle, #9fb6ff 1px, transparent 1.2px);
 
   background-size:
-    85px 85px,
-    130px 130px;
+    74px 74px,
+    118px 118px;
 
   background-position:
-    10px 20px,
-    40px 70px;
+    12px 18px,
+    38px 65px;
 
-  animation: moveStars 55s linear infinite;
+  animation: moveStars 60s linear infinite;
 }
 
 .stars-two {
-  opacity: 0.42;
+  opacity: 0.4;
 
   background-image:
-    radial-gradient(circle, #ffffff 1.3px, transparent 1.4px),
-    radial-gradient(circle, #ffc7a0 1px, transparent 1.2px);
+    radial-gradient(circle, #ffffff 1.3px, transparent 1.5px),
+    radial-gradient(circle, #ffd2b0 1px, transparent 1.2px);
 
   background-size:
-    170px 170px,
+    165px 165px,
     230px 230px;
 
   background-position:
-    50px 30px,
-    90px 120px;
+    40px 20px,
+    95px 110px;
 
-  animation: moveStars 80s linear infinite reverse;
+  animation: moveStars 85s linear infinite reverse;
 }
 
 @keyframes moveStars {
@@ -144,59 +158,59 @@ input {
 
   background:
     radial-gradient(
-      circle at 32% 28%,
-      #c7a58d,
-      #5e504d 45%,
-      #14131a 75%
+      circle at 30% 28%,
+      #c6aa95,
+      #665451 46%,
+      #16141b 76%
     );
 
   box-shadow:
-    inset -15px -18px 25px rgba(0, 0, 0, 0.65),
-    0 0 20px rgba(255, 189, 145, 0.18);
+    inset -12px -15px 22px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(255, 181, 130, 0.17);
 }
 
 .planet-one {
-  top: 12%;
-  right: 12%;
+  top: 13%;
+  right: 14%;
 
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
 
-  animation: floatingPlanet 7s ease-in-out infinite;
+  animation: floatPlanet 7s ease-in-out infinite;
 }
 
 .planet-two {
-  top: 29%;
-  right: 30%;
+  top: 30%;
+  right: 31%;
 
-  width: 13px;
-  height: 13px;
+  width: 12px;
+  height: 12px;
 
-  opacity: 0.8;
+  opacity: 0.75;
 
-  animation: floatingPlanet 9s ease-in-out infinite reverse;
+  animation: floatPlanet 9s ease-in-out infinite reverse;
 }
 
-@keyframes floatingPlanet {
+@keyframes floatPlanet {
   0%,
   100% {
     transform: translateY(0);
   }
 
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-14px);
   }
 }
 
-/* Three.js canvas */
+/* Three.js */
 
 #characterContainer {
   position: absolute;
   inset: 0;
   z-index: 1;
-
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 #characterContainer canvas {
@@ -212,19 +226,21 @@ input {
   z-index: 10;
 
   top: 50%;
-  left: 25%;
+  left: 26%;
 
-  padding: 10px 16px;
+  padding: 10px 15px;
 
-  color: white;
+  color: #ffffff;
   font-size: 14px;
 
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.17);
   border-radius: 8px;
 
   transform: translate(-50%, -50%);
+
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 
   transition:
     opacity 0.4s ease,
@@ -236,25 +252,25 @@ input {
   visibility: hidden;
 }
 
-/* Sign-up card */
+/* Signup card */
 
 .signup-card {
   position: absolute;
   z-index: 5;
 
   top: 50%;
-  left: 67%;
+  left: 68%;
 
-  width: min(320px, 38vw);
+  width: min(320px, 39vw);
   padding: 28px 24px 24px;
 
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   border-radius: 11px;
 
   box-shadow:
-    0 22px 60px rgba(0, 0, 0, 0.5),
-    0 0 25px rgba(255, 255, 255, 0.18);
+    0 24px 65px rgba(0, 0, 0, 0.52),
+    0 0 26px rgba(255, 255, 255, 0.17);
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -264,7 +280,7 @@ input {
 
   transform:
     translate(-50%, -38%)
-    scale(0.75);
+    scale(0.76);
 
   transition:
     opacity 0.7s ease,
@@ -282,15 +298,14 @@ input {
 }
 
 .signup-card h1 {
-  margin-bottom: 22px;
-
+  margin-bottom: 21px;
   color: #202020;
   font-size: 29px;
   font-weight: 700;
   text-align: center;
 }
 
-/* Input fields */
+/* Inputs */
 
 .input-box {
   position: relative;
@@ -305,7 +320,7 @@ input {
   top: 50%;
   left: 12px;
 
-  color: #969696;
+  color: #979797;
   font-size: 14px;
 
   transform: translateY(-50%);
@@ -318,11 +333,11 @@ input {
 
   padding: 0 13px 0 36px;
 
-  color: #242424;
+  color: #252525;
   font-size: 14px;
 
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid #d4d4d4;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #d5d5d5;
   border-radius: 5px;
 
   outline: none;
@@ -334,40 +349,40 @@ input {
 }
 
 .input-box input::placeholder {
-  color: #a0a0a0;
+  color: #9f9f9f;
 }
 
 .input-box input:focus {
-  border-color: #02b9bc;
+  border-color: #05babc;
 
   box-shadow:
-    0 0 0 3px rgba(2, 185, 188, 0.15);
+    0 0 0 3px rgba(5, 186, 188, 0.15);
 
   transform: translateY(-1px);
 }
 
 .input-box input.error {
-  border-color: #e14242;
+  border-color: #e04848;
 
   box-shadow:
-    0 0 0 3px rgba(225, 66, 66, 0.12);
+    0 0 0 3px rgba(224, 72, 72, 0.12);
 }
 
-/* Next button */
+/* Button */
 
 #nextButton {
   width: 100%;
   height: 43px;
   margin-top: 2px;
 
-  color: white;
+  color: #ffffff;
   font-size: 15px;
   font-weight: 600;
 
   background: linear-gradient(
     135deg,
     #08cbcd,
-    #02aeb3
+    #02acb1
   );
 
   border: none;
@@ -376,7 +391,7 @@ input {
   cursor: pointer;
 
   box-shadow:
-    0 9px 20px rgba(0, 183, 187, 0.3);
+    0 9px 20px rgba(0, 183, 187, 0.31);
 
   transition:
     transform 0.2s ease,
@@ -413,14 +428,14 @@ input {
 }
 
 .form-message.error {
-  color: #d93838;
+  color: #d63838;
 }
 
 .form-message.success {
-  color: #07895e;
+  color: #078b5f;
 }
 
-/* Card shake */
+/* Shake */
 
 .signup-card.shake {
   animation: shakeCard 0.4s ease;
@@ -447,19 +462,19 @@ input {
 
 /* Mobile */
 
-@media (max-width: 750px) {
+@media (max-width: 760px) {
   .signup-card {
     top: auto;
-    bottom: 24px;
+    bottom: 22px;
     left: 50%;
 
-    width: calc(100% - 36px);
-    max-width: 370px;
+    width: calc(100% - 34px);
+    max-width: 365px;
 
-    padding: 22px 20px;
+    padding: 21px 20px;
 
     transform:
-      translate(-50%, 35px)
+      translate(-50%, 34px)
       scale(0.88);
   }
 
@@ -470,12 +485,12 @@ input {
   }
 
   .signup-card h1 {
-    margin-bottom: 17px;
+    margin-bottom: 16px;
     font-size: 25px;
   }
 
   .model-loader {
-    top: 32%;
+    top: 30%;
     left: 50%;
   }
 }
