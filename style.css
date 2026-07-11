@@ -17,7 +17,7 @@ body {
 body {
   overflow: hidden;
   font-family: Arial, Helvetica, sans-serif;
-  background: #08090d;
+  background: #05070b;
 }
 
 button,
@@ -35,7 +35,7 @@ input {
   height: 100vh;
   min-height: 520px;
   overflow: hidden;
-  background: #08090d;
+  background: #05070b;
 }
 
 /* =========================================
@@ -45,7 +45,7 @@ input {
 .intro-video {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
 
   width: 100%;
   height: 100%;
@@ -53,15 +53,16 @@ input {
   object-fit: cover;
   object-position: center;
 
-  background: #08090d;
+  background: #05070b;
 
   transition:
     filter 0.5s ease,
-    transform 0.5s ease;
+    transform 0.5s ease,
+    opacity 0.4s ease;
 }
 
 .intro-video.form-active {
-  filter: brightness(0.92);
+  filter: brightness(0.9);
 }
 
 /* =========================================
@@ -75,40 +76,40 @@ input {
 
   background:
     radial-gradient(
-      circle at 73% 29%,
-      rgba(190, 96, 55, 0.48),
-      transparent 34%
+      circle at 70% 25%,
+      rgba(222, 117, 59, 0.35),
+      transparent 30%
     ),
     radial-gradient(
-      circle at 32% 55%,
-      rgba(54, 102, 180, 0.42),
-      transparent 42%
+      circle at 30% 58%,
+      rgba(35, 101, 186, 0.42),
+      transparent 40%
     ),
     linear-gradient(
       120deg,
-      #07080c,
-      #171820,
-      #08090d
+      #04060a,
+      #121824,
+      #090b10
     );
 }
 
 /* =========================================
-   VIDEO OVERLAY
+   OVERLAY
 ========================================= */
 
 .video-overlay {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 2;
 
   pointer-events: none;
 
   background:
     linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.05),
-      rgba(0, 0, 0, 0.02),
-      rgba(0, 0, 0, 0.11)
+      rgba(0, 0, 0, 0.04),
+      rgba(0, 0, 0, 0.03),
+      rgba(0, 0, 0, 0.13)
     );
 }
 
@@ -118,36 +119,36 @@ input {
 
 .signup-card {
   position: absolute;
-  z-index: 5;
+  z-index: 4;
 
   top: 51%;
   left: 69%;
 
-  width: min(305px, 37vw);
-  padding: 24px 22px 22px;
+  width: min(310px, 38vw);
+  padding: 26px 23px 22px;
 
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 10px;
 
   box-shadow:
-    0 20px 55px rgba(0, 0, 0, 0.44),
-    0 0 20px rgba(255, 255, 255, 0.14);
+    0 22px 60px rgba(0, 0, 0, 0.46),
+    0 0 24px rgba(255, 255, 255, 0.13);
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
   opacity: 0;
   visibility: hidden;
 
   transform:
-    translate(-50%, -40%)
-    scale(0.75);
+    translate(-50%, -38%)
+    scale(0.76);
 
   transition:
     opacity 0.65s ease,
     visibility 0.65s ease,
-    transform 0.75s cubic-bezier(0.18, 0.8, 0.2, 1);
+    transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .signup-card.show {
@@ -160,10 +161,10 @@ input {
 }
 
 .signup-card h1 {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 
-  color: #1c1c1c;
-  font-size: 27px;
+  color: #202020;
+  font-size: 29px;
   font-weight: 700;
   text-align: center;
 }
@@ -175,7 +176,7 @@ input {
 .input-box {
   position: relative;
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 11px;
 }
 
 .input-icon {
@@ -189,22 +190,21 @@ input {
   font-size: 13px;
 
   transform: translateY(-50%);
-
   pointer-events: none;
 }
 
 .input-box input {
   width: 100%;
-  height: 39px;
+  height: 41px;
 
-  padding: 0 12px 0 33px;
+  padding: 0 12px 0 34px;
 
-  color: #282828;
+  color: #272727;
   font-size: 13px;
 
-  background: rgba(255, 255, 255, 0.88);
-  border: 1px solid #d6d6d6;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d5d5d5;
+  border-radius: 5px;
 
   outline: none;
 
@@ -215,14 +215,14 @@ input {
 }
 
 .input-box input::placeholder {
-  color: #a1a1a1;
+  color: #a0a0a0;
 }
 
 .input-box input:focus {
-  border-color: #0cc3bd;
+  border-color: #09bdb9;
 
   box-shadow:
-    0 0 0 3px rgba(12, 195, 189, 0.13);
+    0 0 0 3px rgba(9, 189, 185, 0.14);
 
   transform: translateY(-1px);
 }
@@ -235,13 +235,13 @@ input {
 }
 
 /* =========================================
-   NEXT BUTTON
+   BUTTON
 ========================================= */
 
 #nextButton {
   width: 100%;
-  height: 39px;
-  margin-top: 2px;
+  height: 41px;
+  margin-top: 3px;
 
   color: #ffffff;
   font-size: 14px;
@@ -249,17 +249,17 @@ input {
 
   background: linear-gradient(
     135deg,
-    #16d0c7,
-    #08b9b5
+    #14cec5,
+    #06b7b3
   );
 
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
 
   cursor: pointer;
 
   box-shadow:
-    0 7px 17px rgba(7, 183, 178, 0.29);
+    0 8px 18px rgba(6, 183, 179, 0.3);
 
   transition:
     transform 0.2s ease,
@@ -273,7 +273,7 @@ input {
   transform: translateY(-2px);
 
   box-shadow:
-    0 10px 21px rgba(7, 183, 178, 0.37);
+    0 11px 22px rgba(6, 183, 179, 0.38);
 }
 
 #nextButton:active {
@@ -290,8 +290,8 @@ input {
 ========================================= */
 
 .form-message {
-  min-height: 16px;
-  margin-top: 8px;
+  min-height: 17px;
+  margin-top: 9px;
 
   font-size: 11px;
   text-align: center;
@@ -306,7 +306,7 @@ input {
 }
 
 /* =========================================
-   SHAKE
+   SHAKE ANIMATION
 ========================================= */
 
 .signup-card.shake {
@@ -338,7 +338,7 @@ input {
 
 .replay-button {
   position: absolute;
-  z-index: 7;
+  z-index: 6;
 
   right: 18px;
   bottom: 18px;
@@ -390,11 +390,11 @@ input {
 
   .signup-card {
     top: auto;
-    bottom: 22px;
+    bottom: 20px;
     left: 50%;
 
-    width: calc(100% - 32px);
-    max-width: 350px;
+    width: calc(100% - 30px);
+    max-width: 360px;
 
     padding: 20px 18px;
 
@@ -410,18 +410,13 @@ input {
   }
 
   .signup-card h1 {
-    margin-bottom: 14px;
-    font-size: 24px;
-  }
-
-  .input-box input,
-  #nextButton {
-    height: 38px;
+    margin-bottom: 15px;
+    font-size: 25px;
   }
 
   .replay-button {
-    right: 12px;
     top: 12px;
+    right: 12px;
     bottom: auto;
   }
 }
@@ -442,6 +437,6 @@ input {
 
   .input-box input,
   #nextButton {
-    height: 35px;
+    height: 36px;
   }
 }
