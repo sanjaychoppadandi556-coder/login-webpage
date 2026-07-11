@@ -1,44 +1,21 @@
 import * as THREE from "three";
-
-import { GLTFLoader } from
-  "three/addons/loaders/GLTFLoader.js";
-
-console.log("script.js loaded successfully");
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 /* ==================================================
    HTML ELEMENTS
 ================================================== */
 
-const container =
-  document.getElementById("characterContainer");
+const container = document.getElementById("characterContainer");
+const modelLoader = document.getElementById("modelLoader");
+const signupCard = document.getElementById("signupCard");
+const signupForm = document.getElementById("signupForm");
 
-const modelLoader =
-  document.getElementById("modelLoader");
+const fullNameInput = document.getElementById("fullName");
+const usernameInput = document.getElementById("username");
+const emailInput = document.getElementById("email");
 
-const signupCard =
-  document.getElementById("signupCard");
-
-const signupForm =
-  document.getElementById("signupForm");
-
-const fullNameInput =
-  document.getElementById("fullName");
-
-const usernameInput =
-  document.getElementById("username");
-
-const emailInput =
-  document.getElementById("email");
-
-const nextButton =
-  document.getElementById("nextButton");
-
-const formMessage =
-  document.getElementById("formMessage");
-
-/* ==================================================
-   REQUIRED ELEMENT CHECK
-================================================== */
+const nextButton = document.getElementById("nextButton");
+const formMessage = document.getElementById("formMessage");
 
 if (
   !container ||
@@ -51,10 +28,31 @@ if (
   !nextButton ||
   !formMessage
 ) {
-  throw new Error(
-    "Required HTML elements are missing. Check the element IDs in index.html."
-  );
+  throw new Error("Required HTML elements are missing.");
 }
+
+/* ==================================================
+   CONFIGURATION
+================================================== */
+
+const MODEL_PATH = "./models/character_optimized.glb";
+
+/*
+  Change only this value when the character faces backward:
+
+  0         = original direction
+  Math.PI   = opposite direction
+*/
+const CHARACTER_DIRECTION = Math.PI;
+
+/*
+  Final position of the character.
+*/
+const DESKTOP_CHARACTER_X = -2;
+const DESKTOP_CHARACTER_Y = -1.45;
+
+const MOBILE_CHARACTER_X = 0;
+const MOBILE_CHARACTER_Y = -1.1;
 
 /* ==================================================
    THREE.JS SCENE
@@ -63,40 +61,27 @@ if (
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
-  40,
+  38,
   window.innerWidth / window.innerHeight,
   0.1,
-  100
+  1000
 );
 
-camera.position.set(
-  0,
-  1.2,
-  8
-);
-
-camera.lookAt(
-  0,
-  0.7,
-  0
-);
+camera.position.set(0, 1, 8);
+camera.lookAt(0, 0.6, 0);
 
 /* ==================================================
    RENDERER
 ================================================== */
 
-const renderer =
-  new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-    powerPreference: "high-performance"
-  });
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true,
+  powerPreference: "high-performance"
+});
 
 renderer.setPixelRatio(
-  Math.min(
-    window.devicePixelRatio,
-    2
-  )
+  Math.min(window.devicePixelRatio, 2)
 );
 
 renderer.setSize(
@@ -104,110 +89,74 @@ renderer.setSize(
   window.innerHeight
 );
 
-renderer.outputColorSpace =
-  THREE.SRGBColorSpace;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-renderer.shadowMap.type =
-  THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x000000, 0);
 
-renderer.setClearColor(
-  0x000000,
-  0
-);
-
-container.appendChild(
-  renderer.domElement
-);
+container.appendChild(renderer.domElement);
 
 /* ==================================================
-   LIGHTS
+   LIGHTING
 ================================================== */
 
-const hemisphereLight =
-  new THREE.HemisphereLight(
-    0xffffff,
-    0x273149,
-    2.8
-  );
+const hemisphereLight = new THREE.HemisphereLight(
+  0xffffff,
+  0x18233a,
+  2.2
+);
 
 scene.add(hemisphereLight);
 
-const frontLight =
-  new THREE.DirectionalLight(
-    0xffffff,
-    3.5
-  );
-
-frontLight.position.set(
-  2,
-  6,
-  7
+const frontLight = new THREE.DirectionalLight(
+  0xffffff,
+  3
 );
 
+frontLight.position.set(2, 6, 7);
 frontLight.castShadow = true;
 
 scene.add(frontLight);
 
-const blueLight =
-  new THREE.PointLight(
-    0x568bff,
-    24,
-    20
-  );
-
-blueLight.position.set(
-  -4,
-  2,
-  4
+const leftLight = new THREE.PointLight(
+  0x4d83ff,
+  18,
+  20
 );
 
-scene.add(blueLight);
+leftLight.position.set(-4, 2, 4);
 
-const orangeLight =
-  new THREE.PointLight(
-    0xff9d68,
-    28,
-    20
-  );
+scene.add(leftLight);
 
-orangeLight.position.set(
-  4,
-  3,
-  4
+const rightLight = new THREE.PointLight(
+  0xff995f,
+  18,
+  20
 );
 
-scene.add(orangeLight);
+rightLight.position.set(4, 3, 4);
+
+scene.add(rightLight);
 
 /* ==================================================
-   GROUND
+   GROUND SHADOW
 ================================================== */
 
-const groundGeometry =
-  new THREE.CircleGeometry(
-    2.5,
-    64
-  );
+const ground = new THREE.Mesh(
+  new THREE.CircleGeometry(2.2, 64),
 
-const groundMaterial =
   new THREE.MeshStandardMaterial({
-    color: 0x151a24,
+    color: 0x111722,
     transparent: true,
-    opacity: 0.4,
+    opacity: 0.38,
     roughness: 0.9,
     depthWrite: false
-  });
+  })
+);
 
-const ground =
-  new THREE.Mesh(
-    groundGeometry,
-    groundMaterial
-  );
-
-ground.rotation.x =
-  -Math.PI / 2;
-
+ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 
 scene.add(ground);
@@ -216,23 +165,18 @@ scene.add(ground);
    CHARACTER VARIABLES
 ================================================== */
 
-const MODEL_PATH =
-  "./models/character_optimized.glb";
+let characterWrapper = null;
+let characterModel = null;
 
-let character = null;
-let characterRoot = null;
-
-let introStarted = false;
 let formShown = false;
-let modelLoaded = false;
+let introStarted = false;
 
 /* ==================================================
-   LOADER MESSAGE
+   LOADER HELPERS
 ================================================== */
 
-function setLoaderMessage(message) {
+function updateLoader(message) {
   modelLoader.textContent = message;
-
   console.log(message);
 }
 
@@ -241,88 +185,137 @@ function hideLoader() {
 }
 
 /* ==================================================
-   LOAD CHARACTER
+   LOAD GLB CHARACTER
 ================================================== */
 
-const gltfLoader =
-  new GLTFLoader();
+const gltfLoader = new GLTFLoader();
 
-setLoaderMessage(
-  "Loading character..."
-);
-
-console.log(
-  "Loading model:",
-  MODEL_PATH
-);
+updateLoader("Loading character...");
 
 gltfLoader.load(
   MODEL_PATH,
 
   (gltf) => {
-    console.log(
-      "GLB loaded successfully:",
-      gltf
-    );
+    console.log("GLB loaded successfully:", gltf);
 
-    character = gltf.scene;
+    characterModel = gltf.scene;
 
     /*
-      Do not play GLB animations automatically.
-      The first embedded animation may deform the model.
+      Important:
+      Do not reset bones.
+      Do not call skeleton.pose().
+      Do not change the GLB model's scale.
+      Do not change the GLB model's rotation.
     */
 
-    console.log(
-      "Embedded animations found:",
-      gltf.animations.map(
-        (clip) => clip.name
-      )
-    );
-
-    prepareCharacter(character);
-
-    restoreSkeletonPose(character);
-
-    characterRoot =
-      new THREE.Group();
-
-    characterRoot.name =
-      "CharacterRoot";
-
-    characterRoot.add(character);
-
-    scene.add(characterRoot);
+    prepareModelMaterials(characterModel);
 
     /*
-      Only rotate around the Y axis.
+      Create two wrapper groups:
 
-      Do not use:
-      character.rotation.x = -Math.PI / 2
+      characterCenter:
+      Used only to center the original GLB.
 
-      That caused the model to break or appear sideways.
+      characterWrapper:
+      Used for final page positioning, rotation and scale.
     */
 
-    character.rotation.set(
+    const characterCenter = new THREE.Group();
+
+    characterWrapper = new THREE.Group();
+
+    characterCenter.add(characterModel);
+
+    characterWrapper.add(characterCenter);
+
+    scene.add(characterWrapper);
+
+    /*
+      Calculate bounds without modifying the GLB model.
+    */
+
+    characterModel.updateMatrixWorld(true);
+
+    const modelBox = new THREE.Box3().setFromObject(
+      characterModel
+    );
+
+    const modelSize = modelBox.getSize(
+      new THREE.Vector3()
+    );
+
+    const modelCenter = modelBox.getCenter(
+      new THREE.Vector3()
+    );
+
+    console.log("Original model size:", modelSize);
+    console.log("Original model center:", modelCenter);
+
+    if (
+      !Number.isFinite(modelSize.x) ||
+      !Number.isFinite(modelSize.y) ||
+      !Number.isFinite(modelSize.z) ||
+      modelSize.y <= 0
+    ) {
+      throw new Error(
+        "The GLB model has invalid dimensions."
+      );
+    }
+
+    /*
+      Center the entire unchanged GLB using its parent group.
+    */
+
+    characterCenter.position.set(
+      -modelCenter.x,
+      -modelBox.min.y,
+      -modelCenter.z
+    );
+
+    /*
+      Scale only the external wrapper.
+    */
+
+    const targetHeight =
+      window.innerWidth <= 760
+        ? 3
+        : 4;
+
+    const wrapperScale =
+      targetHeight / modelSize.y;
+
+    characterWrapper.scale.setScalar(
+      wrapperScale
+    );
+
+    /*
+      Rotate only the external wrapper.
+    */
+
+    characterWrapper.rotation.set(
       0,
-      Math.PI,
+      CHARACTER_DIRECTION,
       0
     );
 
-    character.updateMatrixWorld(true);
-
-    centerAndScaleCharacter();
-
     setResponsiveCharacterPosition();
 
-    modelLoaded = true;
+    /*
+      External FBX animations and automatic GLB animations
+      are intentionally disabled until the model displays
+      correctly in its original pose.
+    */
+
+    console.log(
+      "Embedded GLB animations:",
+      gltf.animations.map(
+        (animation) => animation.name
+      )
+    );
 
     hideLoader();
 
-    console.log(
-      "Character loaded in stable rest pose"
-    );
-
-    startIntroSequence();
+    startIntro();
   },
 
   (progress) => {
@@ -330,42 +323,35 @@ gltfLoader.load(
       Number.isFinite(progress.total) &&
       progress.total > 0
     ) {
-      const percentage =
-        Math.round(
-          (
-            progress.loaded /
-            progress.total
-          ) * 100
-        );
+      const percentage = Math.round(
+        (progress.loaded / progress.total) * 100
+      );
 
-      setLoaderMessage(
+      updateLoader(
         `Loading character ${percentage}%`
       );
     }
   },
 
   (error) => {
-    console.error(
-      "GLB loading failed:",
-      error
-    );
+    console.error("GLB loading failed:", error);
 
-    setLoaderMessage(
-      "Character could not be loaded"
+    updateLoader(
+      "Character model could not be loaded"
     );
 
     setTimeout(() => {
       hideLoader();
       showSignupForm();
-    }, 1500);
+    }, 1200);
   }
 );
 
 /* ==================================================
-   PREPARE MODEL
+   MODEL MATERIALS
 ================================================== */
 
-function prepareCharacter(model) {
+function prepareModelMaterials(model) {
   model.traverse((object) => {
     if (!object.isMesh) {
       return;
@@ -373,27 +359,32 @@ function prepareCharacter(model) {
 
     object.castShadow = true;
     object.receiveShadow = true;
-    object.frustumCulled = false;
 
-    const materials =
-      Array.isArray(object.material)
-        ? object.material
-        : [object.material];
+    /*
+      Keep normal Three.js frustum handling.
+      Do not force skeleton or bone changes.
+    */
+
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
 
     materials.forEach((material) => {
       if (!material) {
         return;
       }
 
-      material.side =
-        THREE.DoubleSide;
+      /*
+        FrontSide is safer than DoubleSide for a character.
+      */
+
+      material.side = THREE.FrontSide;
 
       if (material.map) {
         material.map.colorSpace =
           THREE.SRGBColorSpace;
 
-        material.map.needsUpdate =
-          true;
+        material.map.needsUpdate = true;
       }
 
       material.needsUpdate = true;
@@ -402,175 +393,11 @@ function prepareCharacter(model) {
 }
 
 /* ==================================================
-   RESTORE ORIGINAL SKELETON POSE
-================================================== */
-
-function restoreSkeletonPose(model) {
-  model.traverse((object) => {
-    if (
-      object.isSkinnedMesh &&
-      object.skeleton
-    ) {
-      object.skeleton.pose();
-
-      object.skeleton.update();
-    }
-  });
-
-  model.updateMatrixWorld(true);
-
-  console.log(
-    "Skeleton rest pose restored"
-  );
-}
-
-/* ==================================================
-   CENTER AND SCALE CHARACTER
-================================================== */
-
-function centerAndScaleCharacter() {
-  if (!character) {
-    return;
-  }
-
-  /*
-    Keep the Y rotation, but reset position and scale.
-  */
-
-  character.position.set(
-    0,
-    0,
-    0
-  );
-
-  character.scale.set(
-    1,
-    1,
-    1
-  );
-
-  character.updateMatrixWorld(true);
-
-  const initialBox =
-    new THREE.Box3().setFromObject(
-      character
-    );
-
-  const initialSize =
-    initialBox.getSize(
-      new THREE.Vector3()
-    );
-
-  const initialCenter =
-    initialBox.getCenter(
-      new THREE.Vector3()
-    );
-
-  console.log(
-    "Initial model size:",
-    initialSize
-  );
-
-  console.log(
-    "Initial model center:",
-    initialCenter
-  );
-
-  if (
-    initialSize.x <= 0 ||
-    initialSize.y <= 0 ||
-    initialSize.z <= 0
-  ) {
-    console.error(
-      "Invalid model dimensions:",
-      initialSize
-    );
-
-    return;
-  }
-
-  /*
-    Move model center to local origin.
-  */
-
-  character.position.set(
-    -initialCenter.x,
-    -initialCenter.y,
-    -initialCenter.z
-  );
-
-  character.updateMatrixWorld(true);
-
-  /*
-    Automatically scale the character.
-  */
-
-  const targetHeight =
-    window.innerWidth <= 760
-      ? 3
-      : 4;
-
-  const scale =
-    targetHeight /
-    initialSize.y;
-
-  character.scale.setScalar(scale);
-
-  character.updateMatrixWorld(true);
-
-  /*
-    Recalculate the model after scaling.
-  */
-
-  const scaledBox =
-    new THREE.Box3().setFromObject(
-      character
-    );
-
-  const scaledCenter =
-    scaledBox.getCenter(
-      new THREE.Vector3()
-    );
-
-  character.position.x -=
-    scaledCenter.x;
-
-  character.position.z -=
-    scaledCenter.z;
-
-  character.updateMatrixWorld(true);
-
-  /*
-    Place the model's lowest point on y = 0.
-  */
-
-  const finalBox =
-    new THREE.Box3().setFromObject(
-      character
-    );
-
-  character.position.y -=
-    finalBox.min.y;
-
-  character.updateMatrixWorld(true);
-
-  const finalSize =
-    new THREE.Box3()
-      .setFromObject(character)
-      .getSize(new THREE.Vector3());
-
-  console.log(
-    "Final model size:",
-    finalSize
-  );
-}
-
-/* ==================================================
    RESPONSIVE CHARACTER POSITION
 ================================================== */
 
 function setResponsiveCharacterPosition() {
-  if (!characterRoot) {
+  if (!characterWrapper) {
     return;
   }
 
@@ -578,48 +405,40 @@ function setResponsiveCharacterPosition() {
     window.innerWidth <= 760;
 
   if (isMobile) {
-    characterRoot.position.set(
-      0,
-      -1.15,
-      0.4
-    );
-
-    characterRoot.scale.setScalar(
-      0.82
+    characterWrapper.position.set(
+      MOBILE_CHARACTER_X,
+      MOBILE_CHARACTER_Y,
+      0.3
     );
 
     ground.position.set(
-      0,
-      -1.15,
+      MOBILE_CHARACTER_X,
+      MOBILE_CHARACTER_Y,
       0
     );
   } else {
-    characterRoot.position.set(
-      -1.9,
-      -1.55,
+    characterWrapper.position.set(
+      DESKTOP_CHARACTER_X,
+      DESKTOP_CHARACTER_Y,
       0
     );
 
-    characterRoot.scale.setScalar(
-      1
-    );
-
     ground.position.set(
-      -1.9,
-      -1.55,
+      DESKTOP_CHARACTER_X,
+      DESKTOP_CHARACTER_Y,
       0
     );
   }
 }
 
 /* ==================================================
-   INTRO SEQUENCE
+   INTRO MOVEMENT
 ================================================== */
 
-function startIntroSequence() {
+function startIntro() {
   if (
     introStarted ||
-    !characterRoot
+    !characterWrapper
   ) {
     return;
   }
@@ -629,73 +448,47 @@ function startIntroSequence() {
   const isMobile =
     window.innerWidth <= 760;
 
+  const finalX =
+    isMobile
+      ? MOBILE_CHARACTER_X
+      : DESKTOP_CHARACTER_X;
+
   const startX =
     isMobile
-      ? -1.4
-      : -4.5;
+      ? finalX - 1.2
+      : finalX - 2.5;
 
-  const endX =
-    isMobile
-      ? 0
-      : -1.9;
-
-  characterRoot.position.x =
+  characterWrapper.position.x =
     startX;
 
-  moveCharacter(
+  animateCharacterEntrance(
     startX,
-    endX,
-    2400
+    finalX,
+    2200
   );
 
   setTimeout(() => {
     showSignupForm();
-  }, 3200);
-
-  /*
-    Small whole-model turn.
-    This does not modify bones or the skeleton.
-  */
-
-  setTimeout(() => {
-    if (!characterRoot) {
-      return;
-    }
-
-    characterRoot.rotation.y =
-      -0.1;
-  }, 3900);
-
-  setTimeout(() => {
-    if (!characterRoot) {
-      return;
-    }
-
-    characterRoot.rotation.y = 0;
-  }, 4800);
+  }, 2700);
 }
 
-/* ==================================================
-   MOVE CHARACTER
-================================================== */
-
-function moveCharacter(
+function animateCharacterEntrance(
   startX,
   endX,
   duration
 ) {
-  if (!characterRoot) {
+  if (!characterWrapper) {
     return;
   }
 
   const startTime =
     performance.now();
 
-  const originalY =
-    characterRoot.position.y;
+  const fixedY =
+    characterWrapper.position.y;
 
   function update(currentTime) {
-    if (!characterRoot) {
+    if (!characterWrapper) {
       return;
     }
 
@@ -715,7 +508,7 @@ function moveCharacter(
         3
       );
 
-    characterRoot.position.x =
+    characterWrapper.position.x =
       THREE.MathUtils.lerp(
         startX,
         endX,
@@ -723,36 +516,36 @@ function moveCharacter(
       );
 
     /*
-      Small vertical movement while entering.
-      This moves the entire model, not its bones.
+      Move only the whole wrapper.
+      Do not change bones or internal GLB nodes.
     */
 
-    characterRoot.position.y =
-      originalY +
+    characterWrapper.position.y =
+      fixedY +
       Math.sin(
         progress *
         Math.PI *
-        8
+        6
       ) *
-      0.018;
+      0.015;
 
     if (progress < 1) {
       requestAnimationFrame(update);
       return;
     }
 
-    characterRoot.position.x =
+    characterWrapper.position.x =
       endX;
 
-    characterRoot.position.y =
-      originalY;
+    characterWrapper.position.y =
+      fixedY;
   }
 
   requestAnimationFrame(update);
 }
 
 /* ==================================================
-   SHOW FORM
+   SHOW SIGNUP FORM
 ================================================== */
 
 function showSignupForm() {
@@ -762,21 +555,19 @@ function showSignupForm() {
 
   formShown = true;
 
-  signupCard.classList.add(
-    "show"
-  );
+  signupCard.classList.add("show");
 }
 
 /*
-  Form fallback.
+  Fallback if model loading takes too long.
 */
 
 setTimeout(() => {
   showSignupForm();
-}, 6500);
+}, 6000);
 
 /* ==================================================
-   FORM INPUT HANDLING
+   FORM VALIDATION
 ================================================== */
 
 const formInputs = [
@@ -786,24 +577,14 @@ const formInputs = [
 ];
 
 formInputs.forEach((input) => {
-  input.addEventListener(
-    "input",
-    () => {
-      input.classList.remove(
-        "input-error"
-      );
+  input.addEventListener("input", () => {
+    input.classList.remove("input-error");
 
-      formMessage.textContent = "";
-
-      formMessage.className =
-        "form-message";
-    }
-  );
+    formMessage.textContent = "";
+    formMessage.className =
+      "form-message";
+  });
 });
-
-/* ==================================================
-   EMAIL VALIDATION
-================================================== */
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
@@ -811,40 +592,24 @@ function isValidEmail(email) {
   );
 }
 
-/* ==================================================
-   DISPLAY VALIDATION ERROR
-================================================== */
-
 function showFormError(
   message,
   input
 ) {
-  formMessage.textContent =
-    message;
+  formMessage.textContent = message;
 
   formMessage.className =
     "form-message error";
 
-  input.classList.add(
-    "input-error"
-  );
-
+  input.classList.add("input-error");
   input.focus();
 
-  signupCard.classList.remove(
-    "shake"
-  );
+  signupCard.classList.remove("shake");
 
   void signupCard.offsetWidth;
 
-  signupCard.classList.add(
-    "shake"
-  );
+  signupCard.classList.add("shake");
 }
-
-/* ==================================================
-   FORM SUBMIT
-================================================== */
 
 signupForm.addEventListener(
   "submit",
@@ -867,7 +632,6 @@ signupForm.addEventListener(
     });
 
     formMessage.textContent = "";
-
     formMessage.className =
       "form-message";
 
@@ -917,7 +681,6 @@ signupForm.addEventListener(
     }
 
     nextButton.disabled = true;
-
     nextButton.textContent =
       "Please wait...";
 
@@ -929,19 +692,13 @@ signupForm.addEventListener(
         "form-message success";
 
       nextButton.disabled = false;
+      nextButton.textContent = "Next";
 
-      nextButton.textContent =
-        "Next";
-
-      console.log(
-        "Form submitted:",
-        {
-          fullName,
-          username,
-          email,
-          modelLoaded
-        }
-      );
+      console.log({
+        fullName,
+        username,
+        email
+      });
     }, 700);
   }
 );
@@ -953,10 +710,7 @@ signupForm.addEventListener(
 function animate() {
   requestAnimationFrame(animate);
 
-  renderer.render(
-    scene,
-    camera
-  );
+  renderer.render(scene, camera);
 }
 
 animate();
