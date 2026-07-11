@@ -1,517 +1,934 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+import * as THREE from "three";
 
-html,
-body {
-  width: 100%;
-  height: 100%;
-}
+import { GLTFLoader } from
+  "three/addons/loaders/GLTFLoader.js";
 
-body {
-  overflow: hidden;
-  font-family: Arial, Helvetica, sans-serif;
-  background: #050711;
-}
+import { FBXLoader } from
+  "three/addons/loaders/FBXLoader.js";
 
-button,
-input {
-  font: inherit;
-}
+console.log("script.js loaded");
 
-.login-page {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  min-height: 560px;
-  overflow: hidden;
-  isolation: isolate;
-}
+/* --------------------------------------------------
+   HTML elements
+-------------------------------------------------- */
 
-/* Background */
+const container =
+  document.getElementById("characterContainer");
 
-.space-background {
-  position: absolute;
-  inset: 0;
-  z-index: -5;
-  overflow: hidden;
+const modelLoader =
+  document.getElementById("modelLoader");
 
-  background:
-    radial-gradient(
-      circle at 30% 58%,
-      rgba(24, 94, 186, 0.42),
-      transparent 34%
-    ),
-    radial-gradient(
-      circle at 75% 22%,
-      rgba(237, 121, 63, 0.38),
-      transparent 27%
-    ),
-    linear-gradient(
-      115deg,
-      #02040a 0%,
-      #090e1a 40%,
-      #151724 68%,
-      #090911 100%
+const signupCard =
+  document.getElementById("signupCard");
+
+const signupForm =
+  document.getElementById("signupForm");
+
+const fullNameInput =
+  document.getElementById("fullName");
+
+const usernameInput =
+  document.getElementById("username");
+
+const emailInput =
+  document.getElementById("email");
+
+const nextButton =
+  document.getElementById("nextButton");
+
+const formMessage =
+  document.getElementById("formMessage");
+
+/* --------------------------------------------------
+   Scene
+-------------------------------------------------- */
+
+const scene = new THREE.Scene();
+
+/*
+  Modified camera settings.
+  These settings allow a wider visible area.
+*/
+
+const camera = new THREE.PerspectiveCamera(
+  40,
+  window.innerWidth / window.innerHeight,
+  0.01,
+  1000
+);
+
+camera.position.set(0, 1.2, 8);
+camera.lookAt(0, 0.6, 0);
+
+/* --------------------------------------------------
+   Renderer
+-------------------------------------------------- */
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
+
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
+
+renderer.setSize(
+  window.innerWidth,
+  window.innerHeight
+);
+
+renderer.outputColorSpace =
+  THREE.SRGBColorSpace;
+
+renderer.shadowMap.enabled = true;
+
+renderer.shadowMap.type =
+  THREE.PCFSoftShadowMap;
+
+renderer.setClearColor(0x000000, 0);
+
+container.appendChild(renderer.domElement);
+
+/* --------------------------------------------------
+   Lighting
+-------------------------------------------------- */
+
+const hemisphereLight =
+  new THREE.HemisphereLight(
+    0xffffff,
+    0x26304a,
+    2.4
+  );
+
+scene.add(hemisphereLight);
+
+const frontLight =
+  new THREE.DirectionalLight(
+    0xffffff,
+    3.2
+  );
+
+frontLight.position.set(2, 6, 7);
+
+frontLight.castShadow = true;
+
+scene.add(frontLight);
+
+const warmLight =
+  new THREE.PointLight(
+    0xffa16c,
+    28,
+    20
+  );
+
+warmLight.position.set(4, 3, 4);
+
+scene.add(warmLight);
+
+const blueLight =
+  new THREE.PointLight(
+    0x5a8cff,
+    22,
+    18
+  );
+
+blueLight.position.set(-5, 2, 3);
+
+scene.add(blueLight);
+
+/* --------------------------------------------------
+   Ground
+-------------------------------------------------- */
+
+const groundGeometry =
+  new THREE.CircleGeometry(2.3, 64);
+
+const groundMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0x171b24,
+    transparent: true,
+    opacity: 0.44,
+    roughness: 0.8
+  });
+
+const ground =
+  new THREE.Mesh(
+    groundGeometry,
+    groundMaterial
+  );
+
+ground.rotation.x = -Math.PI / 2;
+ground.position.set(-1.8, -1.62, 0);
+ground.receiveShadow = true;
+
+scene.add(ground);
+
+/* --------------------------------------------------
+   Character variables
+-------------------------------------------------- */
+
+const clock = new THREE.Clock();
+
+let character = null;
+let characterRoot = null;
+let mixer = null;
+let currentAction = null;
+
+let sequenceStarted = false;
+let formShown = false;
+
+const animationActions = {};
+
+/* --------------------------------------------------
+   Model paths
+-------------------------------------------------- */
+
+const MODEL_PATH =
+  "./models/character_optimized.glb";
+
+const animationFiles = {
+  idle: "./models/Idle.fbx",
+  walking: "./models/Walking.fbx",
+  talking: "./models/Talking.fbx",
+  pointing: "./models/Pointing.fbx",
+  waving: "./models/Waving.fbx"
+};
+
+/* --------------------------------------------------
+   Load character
+-------------------------------------------------- */
+
+const gltfLoader = new GLTFLoader();
+
+console.log("Loading GLB:", MODEL_PATH);
+
+gltfLoader.load(
+  MODEL_PATH,
+
+  (gltf) => {
+    console.log("GLB loaded successfully", gltf);
+
+    character = gltf.scene;
+
+    character.traverse((object) => {
+      if (!object.isMesh) {
+        return;
+      }
+
+      object.castShadow = true;
+      object.receiveShadow = true;
+
+      if (object.material) {
+        object.material.side =
+          THREE.DoubleSide;
+
+        object.material.needsUpdate =
+          true;
+      }
+    });
+
+    /*
+      characterRoot controls page positioning.
+      character controls model centering and scale.
+    */
+
+    characterRoot = new THREE.Group();
+    characterRoot.add(character);
+    scene.add(characterRoot);
+
+    /*
+      Get original model dimensions.
+    */
+
+    character.updateMatrixWorld(true);
+
+    const originalBox =
+      new THREE.Box3().setFromObject(character);
+
+    const originalSize =
+      originalBox.getSize(
+        new THREE.Vector3()
+      );
+
+    const originalCenter =
+      originalBox.getCenter(
+        new THREE.Vector3()
+      );
+
+    console.log(
+      "Original model size:",
+      originalSize
     );
-}
 
-.space-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(28px);
-  pointer-events: none;
-}
-
-.blue-glow {
-  left: 15%;
-  bottom: 5%;
-
-  width: 52vw;
-  height: 52vw;
-
-  background: radial-gradient(
-    circle,
-    rgba(37, 116, 255, 0.28),
-    transparent 67%
-  );
-}
-
-.orange-glow {
-  top: -12%;
-  right: -2%;
-
-  width: 45vw;
-  height: 45vw;
-
-  background: radial-gradient(
-    circle,
-    rgba(255, 133, 77, 0.26),
-    transparent 68%
-  );
-}
-
-/* Stars */
-
-.stars {
-  position: absolute;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
-  background-repeat: repeat;
-  pointer-events: none;
-}
-
-.stars-one {
-  opacity: 0.82;
-
-  background-image:
-    radial-gradient(circle, #ffffff 1px, transparent 1.2px),
-    radial-gradient(circle, #9fb6ff 1px, transparent 1.2px);
-
-  background-size:
-    74px 74px,
-    118px 118px;
-
-  background-position:
-    12px 18px,
-    38px 65px;
-
-  animation: moveStars 60s linear infinite;
-}
-
-.stars-two {
-  opacity: 0.4;
-
-  background-image:
-    radial-gradient(circle, #ffffff 1.3px, transparent 1.5px),
-    radial-gradient(circle, #ffd2b0 1px, transparent 1.2px);
-
-  background-size:
-    165px 165px,
-    230px 230px;
-
-  background-position:
-    40px 20px,
-    95px 110px;
-
-  animation: moveStars 85s linear infinite reverse;
-}
-
-@keyframes moveStars {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-
-  to {
-    transform: translate3d(180px, 120px, 0);
-  }
-}
-
-/* Planets */
-
-.planet {
-  position: absolute;
-  border-radius: 50%;
-
-  background:
-    radial-gradient(
-      circle at 30% 28%,
-      #c6aa95,
-      #665451 46%,
-      #16141b 76%
+    console.log(
+      "Original model center:",
+      originalCenter
     );
 
-  box-shadow:
-    inset -12px -15px 22px rgba(0, 0, 0, 0.65),
-    0 0 24px rgba(255, 181, 130, 0.17);
-}
+    /*
+      Move the model itself to the origin.
+    */
 
-.planet-one {
-  top: 13%;
-  right: 14%;
+    character.position.set(
+      -originalCenter.x,
+      -originalCenter.y,
+      -originalCenter.z
+    );
 
-  width: 25px;
-  height: 25px;
+    /*
+      Automatically scale model based on height.
+    */
 
-  animation: floatPlanet 7s ease-in-out infinite;
-}
+    const originalHeight =
+      originalSize.y > 0
+        ? originalSize.y
+        : Math.max(
+            originalSize.x,
+            originalSize.z,
+            1
+          );
 
-.planet-two {
-  top: 30%;
-  right: 31%;
+    const targetHeight =
+      window.innerWidth <= 760
+        ? 3.2
+        : 4.3;
 
-  width: 12px;
-  height: 12px;
+    const automaticScale =
+      targetHeight / originalHeight;
 
-  opacity: 0.75;
+    character.scale.setScalar(
+      automaticScale
+    );
 
-  animation: floatPlanet 9s ease-in-out infinite reverse;
-}
+    /*
+      Recalculate after scaling and centering.
+    */
 
-@keyframes floatPlanet {
-  0%,
-  100% {
-    transform: translateY(0);
+    character.updateMatrixWorld(true);
+
+    const scaledBox =
+      new THREE.Box3().setFromObject(character);
+
+    const scaledSize =
+      scaledBox.getSize(
+        new THREE.Vector3()
+      );
+
+    const scaledCenter =
+      scaledBox.getCenter(
+        new THREE.Vector3()
+      );
+
+    console.log(
+      "Scaled model size:",
+      scaledSize
+    );
+
+    console.log(
+      "Scaled model center:",
+      scaledCenter
+    );
+
+    /*
+      Correct any remaining center offset.
+    */
+
+    character.position.x -=
+      scaledCenter.x;
+
+    character.position.y -=
+      scaledCenter.y;
+
+    character.position.z -=
+      scaledCenter.z;
+
+    /*
+      Place full character group on screen.
+    */
+
+    setCharacterResponsivePosition();
+
+    characterRoot.rotation.y = 0;
+
+    /*
+      Create animation mixer.
+    */
+
+    mixer =
+      new THREE.AnimationMixer(character);
+
+    modelLoader.textContent =
+      "Loading animations...";
+
+    loadAllAnimations();
+  },
+
+  (progress) => {
+    if (
+      progress.total &&
+      progress.total > 0
+    ) {
+      const percentage =
+        Math.round(
+          (
+            progress.loaded /
+            progress.total
+          ) * 100
+        );
+
+      modelLoader.textContent =
+        `Loading character ${percentage}%`;
+    }
+  },
+
+  (error) => {
+    console.error(
+      "GLB failed to load:",
+      error
+    );
+
+    modelLoader.textContent =
+      "Character could not be loaded";
+
+    showSignupForm();
+  }
+);
+
+/* --------------------------------------------------
+   Responsive model position
+-------------------------------------------------- */
+
+function setCharacterResponsivePosition() {
+  if (!characterRoot) {
+    return;
   }
 
-  50% {
-    transform: translateY(-14px);
+  if (window.innerWidth <= 760) {
+    characterRoot.position.set(
+      0,
+      0.55,
+      0.4
+    );
+  } else {
+    characterRoot.position.set(
+      -1.85,
+      0,
+      0
+    );
   }
 }
 
-/* Three.js */
+/* --------------------------------------------------
+   Load FBX animation
+-------------------------------------------------- */
 
-#characterContainer {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
+const fbxLoader = new FBXLoader();
+
+function loadFBXAnimation(
+  animationName,
+  animationPath
+) {
+  return new Promise((resolve) => {
+    console.log(
+      `Loading ${animationName}:`,
+      animationPath
+    );
+
+    fbxLoader.load(
+      animationPath,
+
+      (fbx) => {
+        if (
+          !fbx.animations ||
+          fbx.animations.length === 0
+        ) {
+          console.warn(
+            `${animationName} contains no animation`
+          );
+
+          resolve(false);
+          return;
+        }
+
+        const clip =
+          fbx.animations[0];
+
+        clip.name = animationName;
+
+        const action =
+          mixer.clipAction(clip);
+
+        animationActions[animationName] =
+          action;
+
+        console.log(
+          `${animationName} loaded successfully`
+        );
+
+        resolve(true);
+      },
+
+      undefined,
+
+      (error) => {
+        console.error(
+          `${animationName} failed to load:`,
+          error
+        );
+
+        /*
+          Resolve instead of rejecting.
+          One missing animation will not stop everything.
+        */
+
+        resolve(false);
+      }
+    );
+  });
 }
 
-#characterContainer canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
+async function loadAllAnimations() {
+  const animationEntries =
+    Object.entries(animationFiles);
 
-/* Loader */
+  const results =
+    await Promise.all(
+      animationEntries.map(
+        ([name, path]) =>
+          loadFBXAnimation(name, path)
+      )
+    );
 
-.model-loader {
-  position: absolute;
-  z-index: 10;
-
-  top: 50%;
-  left: 26%;
-
-  padding: 10px 15px;
-
-  color: #ffffff;
-  font-size: 14px;
-
-  background: rgba(0, 0, 0, 0.58);
-  border: 1px solid rgba(255, 255, 255, 0.17);
-  border-radius: 8px;
-
-  transform: translate(-50%, -50%);
-
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-
-  transition:
-    opacity 0.4s ease,
-    visibility 0.4s ease;
-}
-
-.model-loader.hide {
-  opacity: 0;
-  visibility: hidden;
-}
-
-/* Signup card */
-
-.signup-card {
-  position: absolute;
-  z-index: 5;
-
-  top: 50%;
-  left: 68%;
-
-  width: min(320px, 39vw);
-  padding: 28px 24px 24px;
-
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  border-radius: 11px;
-
-  box-shadow:
-    0 24px 65px rgba(0, 0, 0, 0.52),
-    0 0 26px rgba(255, 255, 255, 0.17);
-
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-
-  opacity: 0;
-  visibility: hidden;
-
-  transform:
-    translate(-50%, -38%)
-    scale(0.76);
-
-  transition:
-    opacity 0.7s ease,
-    visibility 0.7s ease,
-    transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.signup-card.show {
-  opacity: 1;
-  visibility: visible;
-
-  transform:
-    translate(-50%, -50%)
-    scale(1);
-}
-
-.signup-card h1 {
-  margin-bottom: 21px;
-  color: #202020;
-  font-size: 29px;
-  font-weight: 700;
-  text-align: center;
-}
-
-/* Inputs */
-
-.input-box {
-  position: relative;
-  width: 100%;
-  margin-bottom: 13px;
-}
-
-.field-icon {
-  position: absolute;
-  z-index: 2;
-
-  top: 50%;
-  left: 12px;
-
-  color: #979797;
-  font-size: 14px;
-
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.input-box input {
-  width: 100%;
-  height: 43px;
-
-  padding: 0 13px 0 36px;
-
-  color: #252525;
-  font-size: 14px;
-
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid #d5d5d5;
-  border-radius: 5px;
-
-  outline: none;
-
-  transition:
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    transform 0.22s ease;
-}
-
-.input-box input::placeholder {
-  color: #9f9f9f;
-}
-
-.input-box input:focus {
-  border-color: #05babc;
-
-  box-shadow:
-    0 0 0 3px rgba(5, 186, 188, 0.15);
-
-  transform: translateY(-1px);
-}
-
-.input-box input.error {
-  border-color: #e04848;
-
-  box-shadow:
-    0 0 0 3px rgba(224, 72, 72, 0.12);
-}
-
-/* Button */
-
-#nextButton {
-  width: 100%;
-  height: 43px;
-  margin-top: 2px;
-
-  color: #ffffff;
-  font-size: 15px;
-  font-weight: 600;
-
-  background: linear-gradient(
-    135deg,
-    #08cbcd,
-    #02acb1
+  console.log(
+    "Animation loading results:",
+    results
   );
 
-  border: none;
-  border-radius: 5px;
+  modelLoader.classList.add("hide");
 
-  cursor: pointer;
-
-  box-shadow:
-    0 9px 20px rgba(0, 183, 187, 0.31);
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    filter 0.2s ease;
+  startIntroSequence();
 }
 
-#nextButton:hover {
-  filter: brightness(1.06);
+/* --------------------------------------------------
+   Play animation
+-------------------------------------------------- */
 
-  transform: translateY(-2px);
+function playAnimation(
+  name,
+  options = {}
+) {
+  const {
+    loop = true,
+    fadeDuration = 0.35,
+    timeScale = 1
+  } = options;
 
-  box-shadow:
-    0 12px 25px rgba(0, 183, 187, 0.38);
+  const newAction =
+    animationActions[name];
+
+  if (!newAction) {
+    console.warn(
+      `${name} animation unavailable`
+    );
+
+    return false;
+  }
+
+  if (currentAction === newAction) {
+    return true;
+  }
+
+  if (currentAction) {
+    currentAction.fadeOut(
+      fadeDuration
+    );
+  }
+
+  newAction.reset();
+  newAction.enabled = true;
+
+  newAction.setEffectiveTimeScale(
+    timeScale
+  );
+
+  newAction.setEffectiveWeight(1);
+
+  if (loop) {
+    newAction.setLoop(
+      THREE.LoopRepeat,
+      Infinity
+    );
+  } else {
+    newAction.setLoop(
+      THREE.LoopOnce,
+      1
+    );
+
+    newAction.clampWhenFinished =
+      true;
+  }
+
+  newAction.fadeIn(
+    fadeDuration
+  );
+
+  newAction.play();
+
+  currentAction = newAction;
+
+  return true;
 }
 
-#nextButton:active {
-  transform: scale(0.98);
+/* --------------------------------------------------
+   Intro sequence
+-------------------------------------------------- */
+
+function startIntroSequence() {
+  if (
+    sequenceStarted ||
+    !characterRoot
+  ) {
+    return;
+  }
+
+  sequenceStarted = true;
+
+  const isMobile =
+    window.innerWidth <= 760;
+
+  const startX =
+    isMobile ? -1.2 : -4;
+
+  const endX =
+    isMobile ? 0 : -1.85;
+
+  characterRoot.position.x =
+    startX;
+
+  if (
+    !playAnimation("walking", {
+      loop: true,
+      timeScale: 1
+    })
+  ) {
+    playAnimation("idle");
+  }
+
+  animateCharacterPosition(
+    startX,
+    endX,
+    2300,
+    () => {
+      playAnimation("idle");
+    }
+  );
+
+  setTimeout(() => {
+    playAnimation("talking", {
+      loop: true,
+      timeScale: 1
+    });
+  }, 2800);
+
+  setTimeout(() => {
+    showSignupForm();
+
+    playAnimation("pointing", {
+      loop: false,
+      timeScale: 1
+    });
+  }, 4600);
+
+  setTimeout(() => {
+    playAnimation("waving", {
+      loop: false,
+      timeScale: 1
+    });
+  }, 6900);
+
+  setTimeout(() => {
+    playAnimation("idle", {
+      loop: true
+    });
+  }, 9100);
 }
 
-#nextButton:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+/* --------------------------------------------------
+   Move character
+-------------------------------------------------- */
+
+function animateCharacterPosition(
+  startX,
+  endX,
+  duration,
+  onComplete
+) {
+  const startTime =
+    performance.now();
+
+  function move(currentTime) {
+    if (!characterRoot) {
+      return;
+    }
+
+    const elapsed =
+      currentTime - startTime;
+
+    const progress =
+      Math.min(
+        elapsed / duration,
+        1
+      );
+
+    const easedProgress =
+      1 -
+      Math.pow(
+        1 - progress,
+        3
+      );
+
+    characterRoot.position.x =
+      THREE.MathUtils.lerp(
+        startX,
+        endX,
+        easedProgress
+      );
+
+    if (progress < 1) {
+      requestAnimationFrame(move);
+      return;
+    }
+
+    if (
+      typeof onComplete ===
+      "function"
+    ) {
+      onComplete();
+    }
+  }
+
+  requestAnimationFrame(move);
 }
 
-/* Message */
+/* --------------------------------------------------
+   Show signup form
+-------------------------------------------------- */
 
-.form-message {
-  min-height: 18px;
-  margin-top: 10px;
+function showSignupForm() {
+  if (formShown) {
+    return;
+  }
 
-  font-size: 12px;
-  text-align: center;
+  formShown = true;
+
+  signupCard.classList.add("show");
 }
 
-.form-message.error {
-  color: #d63838;
+/*
+  Form fallback.
+  The form still appears if model loading fails.
+*/
+
+setTimeout(() => {
+  showSignupForm();
+}, 6500);
+
+/* --------------------------------------------------
+   Form validation
+-------------------------------------------------- */
+
+const formInputs = [
+  fullNameInput,
+  usernameInput,
+  emailInput
+];
+
+formInputs.forEach((input) => {
+  input.addEventListener(
+    "input",
+    () => {
+      input.classList.remove(
+        "error"
+      );
+
+      formMessage.textContent = "";
+
+      formMessage.className =
+        "form-message";
+    }
+  );
+});
+
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    email
+  );
 }
 
-.form-message.success {
-  color: #078b5f;
+function showFormError(
+  message,
+  input
+) {
+  formMessage.textContent =
+    message;
+
+  formMessage.className =
+    "form-message error";
+
+  input.classList.add("error");
+  input.focus();
+
+  signupCard.classList.remove(
+    "shake"
+  );
+
+  void signupCard.offsetWidth;
+
+  signupCard.classList.add(
+    "shake"
+  );
 }
 
-/* Shake */
+signupForm.addEventListener(
+  "submit",
+  (event) => {
+    event.preventDefault();
 
-.signup-card.shake {
-  animation: shakeCard 0.4s ease;
+    const fullName =
+      fullNameInput.value.trim();
+
+    const username =
+      usernameInput.value.trim();
+
+    const email =
+      emailInput.value.trim();
+
+    formInputs.forEach(
+      (input) => {
+        input.classList.remove(
+          "error"
+        );
+      }
+    );
+
+    if (!fullName) {
+      showFormError(
+        "Please enter your name.",
+        fullNameInput
+      );
+
+      return;
+    }
+
+    if (!username) {
+      showFormError(
+        "Please enter a username.",
+        usernameInput
+      );
+
+      return;
+    }
+
+    if (username.length < 3) {
+      showFormError(
+        "Username must contain at least 3 characters.",
+        usernameInput
+      );
+
+      return;
+    }
+
+    if (!email) {
+      showFormError(
+        "Please enter your email address.",
+        emailInput
+      );
+
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      showFormError(
+        "Please enter a valid email address.",
+        emailInput
+      );
+
+      return;
+    }
+
+    nextButton.disabled = true;
+    nextButton.textContent =
+      "Please wait...";
+
+    playAnimation("pointing", {
+      loop: false
+    });
+
+    setTimeout(() => {
+      formMessage.textContent =
+        "Details saved successfully.";
+
+      formMessage.className =
+        "form-message success";
+
+      nextButton.disabled = false;
+      nextButton.textContent =
+        "Next";
+
+      playAnimation("waving", {
+        loop: false
+      });
+
+      console.log({
+        fullName,
+        username,
+        email
+      });
+    }, 700);
+  }
+);
+
+/* --------------------------------------------------
+   Render
+-------------------------------------------------- */
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta =
+    clock.getDelta();
+
+  if (mixer) {
+    mixer.update(delta);
+  }
+
+  renderer.render(
+    scene,
+    camera
+  );
 }
 
-@keyframes shakeCard {
-  0%,
-  100% {
-    margin-left: 0;
+animate();
+
+/* --------------------------------------------------
+   Resize
+-------------------------------------------------- */
+
+window.addEventListener(
+  "resize",
+  () => {
+    camera.aspect =
+      window.innerWidth /
+      window.innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
+
+    setCharacterResponsivePosition();
   }
-
-  25% {
-    margin-left: -8px;
-  }
-
-  50% {
-    margin-left: 8px;
-  }
-
-  75% {
-    margin-left: -5px;
-  }
-}
-
-/* Mobile */
-
-@media (max-width: 760px) {
-  .signup-card {
-    top: auto;
-    bottom: 22px;
-    left: 50%;
-
-    width: calc(100% - 34px);
-    max-width: 365px;
-
-    padding: 21px 20px;
-
-    transform:
-      translate(-50%, 34px)
-      scale(0.88);
-  }
-
-  .signup-card.show {
-    transform:
-      translate(-50%, 0)
-      scale(1);
-  }
-
-  .signup-card h1 {
-    margin-bottom: 16px;
-    font-size: 25px;
-  }
-
-  .model-loader {
-    top: 30%;
-    left: 50%;
-  }
-}
-
-@media (max-height: 620px) {
-  .signup-card {
-    padding-top: 18px;
-    padding-bottom: 16px;
-  }
-
-  .signup-card h1 {
-    margin-bottom: 14px;
-    font-size: 24px;
-  }
-
-  .input-box {
-    margin-bottom: 9px;
-  }
-
-  .input-box input,
-  #nextButton {
-    height: 39px;
-  }
-}
+);
