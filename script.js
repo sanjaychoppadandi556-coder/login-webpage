@@ -3,89 +3,26 @@ import * as THREE from "three";
 import { GLTFLoader } from
   "three/addons/loaders/GLTFLoader.js";
 
-import { OrbitControls } from
-  "three/addons/controls/OrbitControls.js";
 
+/* ======================================
+   3D CHARACTER
+====================================== */
 
-/* ========================================
-   HTML ELEMENTS
-======================================== */
+const canvas =
+  document.getElementById("character-canvas");
 
-const canvas = document.getElementById(
-  "character-canvas"
-);
+const characterSection =
+  document.querySelector(".character-section");
 
-const modelContainer = document.getElementById(
-  "model-container"
-);
-
-const modelLoader = document.getElementById(
-  "model-loader"
-);
-
-const loginForm = document.getElementById(
-  "login-form"
-);
-
-const emailInput = document.getElementById(
-  "email"
-);
-
-const passwordInput = document.getElementById(
-  "password"
-);
-
-const emailError = document.getElementById(
-  "email-error"
-);
-
-const passwordError = document.getElementById(
-  "password-error"
-);
-
-const passwordToggle = document.getElementById(
-  "password-toggle"
-);
-
-const loginButton = document.getElementById(
-  "login-button"
-);
-
-const googleButton = document.getElementById(
-  "google-button"
-);
-
-const forgotPasswordButton = document.getElementById(
-  "forgot-password"
-);
-
-const signupButton = document.getElementById(
-  "signup-button"
-);
-
-const toast = document.getElementById(
-  "toast"
-);
-
-const toastIcon = document.getElementById(
-  "toast-icon"
-);
-
-const toastMessage = document.getElementById(
-  "toast-message"
-);
-
-
-/* ========================================
-   THREE.JS SCENE
-======================================== */
+const modelStatus =
+  document.getElementById("model-status");
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(
-  35,
-  modelContainer.clientWidth /
-    modelContainer.clientHeight,
+  32,
+  characterSection.clientWidth /
+    characterSection.clientHeight,
   0.1,
   100
 );
@@ -103,8 +40,8 @@ renderer.setPixelRatio(
 );
 
 renderer.setSize(
-  modelContainer.clientWidth,
-  modelContainer.clientHeight
+  characterSection.clientWidth,
+  characterSection.clientHeight
 );
 
 renderer.outputColorSpace =
@@ -116,120 +53,79 @@ renderer.shadowMap.type =
   THREE.PCFSoftShadowMap;
 
 
-/* ========================================
-   LIGHTS
-======================================== */
+/* LIGHTS */
 
 const ambientLight = new THREE.AmbientLight(
   0xffffff,
-  1.8
+  2.2
 );
 
 scene.add(ambientLight);
 
-
-const mainLight = new THREE.DirectionalLight(
+const keyLight = new THREE.DirectionalLight(
   0xffffff,
-  3.5
+  4
 );
 
-mainLight.position.set(4, 7, 5);
+keyLight.position.set(4, 7, 5);
+keyLight.castShadow = true;
 
-mainLight.castShadow = true;
+scene.add(keyLight);
 
-mainLight.shadow.mapSize.set(2048, 2048);
-
-scene.add(mainLight);
-
-
-const purpleLight = new THREE.PointLight(
-  0x7959ff,
+const warmLight = new THREE.PointLight(
+  0xff8c4b,
   18,
   12
 );
 
-purpleLight.position.set(-4, 3, 3);
+warmLight.position.set(-3, 2, 3);
 
-scene.add(purpleLight);
-
+scene.add(warmLight);
 
 const blueLight = new THREE.PointLight(
-  0x3478ff,
-  10,
+  0x579eff,
+  14,
   10
 );
 
-blueLight.position.set(4, 1, -2);
+blueLight.position.set(3, 2, 1);
 
 scene.add(blueLight);
 
 
-/* ========================================
-   FLOOR
-======================================== */
-
-const floorGeometry =
-  new THREE.CircleGeometry(2.4, 64);
-
-const floorMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x11121a,
-    transparent: true,
-    opacity: 0.48,
-    roughness: 0.75
-  });
+/* FLOOR SHADOW */
 
 const floor = new THREE.Mesh(
-  floorGeometry,
-  floorMaterial
+  new THREE.CircleGeometry(2, 64),
+
+  new THREE.ShadowMaterial({
+    color: 0x000000,
+    opacity: 0.35
+  })
 );
 
 floor.rotation.x = -Math.PI / 2;
-
-floor.position.y = -1.53;
-
+floor.position.y = -1.65;
 floor.receiveShadow = true;
 
 scene.add(floor);
 
 
-/* ========================================
-   ORBIT CONTROLS
-======================================== */
+/* LOAD MODEL */
 
-const controls = new OrbitControls(
-  camera,
-  renderer.domElement
-);
-
-controls.enableDamping = true;
-
-controls.enablePan = false;
-
-controls.enableZoom = false;
-
-controls.minPolarAngle = Math.PI / 2.8;
-
-controls.maxPolarAngle = Math.PI / 1.9;
-
-controls.target.set(0, 0.4, 0);
-
-
-/* ========================================
-   LOAD GLB CHARACTER
-======================================== */
-
-const gltfLoader = new GLTFLoader();
-
-let character = null;
-let animationMixer = null;
-let currentAction = null;
-let animationActions = [];
+const loader = new GLTFLoader();
 
 const clock = new THREE.Clock();
 
-gltfLoader.load(
-  "./character.glb",
+let character = null;
+let mixer = null;
+let currentAction = null;
+
+let targetRotationY = 0.17;
+let targetRotationX = 0;
+
+loader.load(
+  "models/character_optimized.glb",
 
   function (gltf) {
     character = gltf.scene;
@@ -247,326 +143,147 @@ gltfLoader.load(
 
     scene.add(character);
 
-    fitModelToScene(character);
+    positionCharacter(character);
 
-    if (
-      gltf.animations &&
-      gltf.animations.length > 0
-    ) {
-      animationMixer =
-        new THREE.AnimationMixer(character);
+    if (gltf.animations.length > 0) {
+      mixer = new THREE.AnimationMixer(character);
 
-      animationActions =
-        gltf.animations.map(function (clip) {
-          return {
-            name: clip.name.toLowerCase(),
-            action:
-              animationMixer.clipAction(clip)
-          };
-        });
+      const idleClip =
+        gltf.animations.find(animation =>
+          animation.name
+            .toLowerCase()
+            .includes("idle")
+        ) || gltf.animations[0];
+
+      currentAction =
+        mixer.clipAction(idleClip);
+
+      currentAction.play();
 
       console.log(
-        "Available animations:",
-        gltf.animations.map(
-          animation => animation.name
+        "GLB animations:",
+        gltf.animations.map(animation =>
+          animation.name
         )
       );
-
-      playDefaultAnimation();
     }
 
-    modelLoader.classList.add("hidden");
+    modelStatus.classList.add("hidden");
   },
 
   function (progress) {
     if (progress.total > 0) {
-      const percentage = Math.round(
-        (progress.loaded / progress.total) * 100
+      const percent = Math.round(
+        progress.loaded /
+        progress.total *
+        100
       );
 
-      modelLoader.textContent =
-        `Loading character... ${percentage}%`;
+      modelStatus.textContent =
+        `Loading character... ${percent}%`;
     }
   },
 
   function (error) {
     console.error(
-      "Model loading failed:",
+      "Character loading error:",
       error
     );
 
-    modelLoader.textContent =
-      "Character could not be loaded. Check character.glb.";
+    modelStatus.textContent =
+      "Character could not be loaded. Check models/character_optimized.glb";
   }
 );
 
 
-/* ========================================
-   MODEL SIZE AND POSITION
-======================================== */
+function positionCharacter(model) {
+  const box =
+    new THREE.Box3().setFromObject(model);
 
-function fitModelToScene(model) {
-  const box = new THREE.Box3().setFromObject(model);
+  const size =
+    box.getSize(new THREE.Vector3());
 
-  const size = box.getSize(
-    new THREE.Vector3()
-  );
-
-  const center = box.getCenter(
-    new THREE.Vector3()
-  );
+  const center =
+    box.getCenter(new THREE.Vector3());
 
   model.position.x -= center.x;
   model.position.y -= center.y;
   model.position.z -= center.z;
 
-  const maximumDimension = Math.max(
-    size.x,
-    size.y,
-    size.z
-  );
+  const modelHeight = size.y;
 
-  const desiredHeight = 3.6;
-
-  const scale =
-    desiredHeight / maximumDimension;
+  const scale = 4.1 / modelHeight;
 
   model.scale.setScalar(scale);
 
-  const updatedBox =
+  const finalBox =
     new THREE.Box3().setFromObject(model);
 
-  const updatedCenter =
-    updatedBox.getCenter(
+  const finalCenter =
+    finalBox.getCenter(
       new THREE.Vector3()
     );
 
-  model.position.x -= updatedCenter.x;
-  model.position.z -= updatedCenter.z;
+  model.position.x -= finalCenter.x;
+  model.position.z -= finalCenter.z;
 
   model.position.y =
-    -updatedBox.min.y - 1.52;
+    -finalBox.min.y - 1.65;
 
-  model.rotation.y = -0.15;
+  model.position.x = -0.25;
+
+  model.rotation.y = 0.17;
 }
 
 
-/* ========================================
-   CHARACTER ANIMATIONS
-======================================== */
-
-function findAnimation(keywords) {
-  return animationActions.find(
-    animationItem =>
-      keywords.some(keyword =>
-        animationItem.name.includes(keyword)
-      )
-  );
-}
-
-
-function playAnimation(
-  animationItem,
-  loop = true
-) {
-  if (!animationItem) {
-    return false;
-  }
-
-  if (
-    currentAction === animationItem.action
-  ) {
-    return true;
-  }
-
-  if (currentAction) {
-    currentAction.fadeOut(0.3);
-  }
-
-  currentAction = animationItem.action;
-
-  currentAction.reset();
-
-  currentAction.setLoop(
-    loop
-      ? THREE.LoopRepeat
-      : THREE.LoopOnce,
-    loop ? Infinity : 1
-  );
-
-  currentAction.clampWhenFinished = !loop;
-
-  currentAction
-    .fadeIn(0.3)
-    .play();
-
-  return true;
-}
-
-
-function playDefaultAnimation() {
-  const idleAnimation = findAnimation([
-    "idle",
-    "stand",
-    "breath"
-  ]);
-
-  const walkingAnimation = findAnimation([
-    "walk"
-  ]);
-
-  const firstAnimation =
-    animationActions[0];
-
-  playAnimation(
-    idleAnimation ||
-    walkingAnimation ||
-    firstAnimation,
-    true
-  );
-}
-
-
-function playSuccessAnimation() {
-  const successAnimation = findAnimation([
-    "celebrate",
-    "happy",
-    "dance",
-    "victory",
-    "wave",
-    "jump"
-  ]);
-
-  if (!successAnimation) {
-    temporaryCharacterEffect("success");
-    return;
-  }
-
-  playAnimation(successAnimation, false);
-
-  setTimeout(() => {
-    playDefaultAnimation();
-  }, 2200);
-}
-
-
-function playErrorAnimation() {
-  const errorAnimation = findAnimation([
-    "sad",
-    "no",
-    "fail",
-    "disappointed"
-  ]);
-
-  if (!errorAnimation) {
-    temporaryCharacterEffect("error");
-    return;
-  }
-
-  playAnimation(errorAnimation, false);
-
-  setTimeout(() => {
-    playDefaultAnimation();
-  }, 1800);
-}
-
-
-function temporaryCharacterEffect(type) {
-  if (!character) {
-    return;
-  }
-
-  const originalRotation =
-    character.rotation.z;
-
-  if (type === "success") {
-    let count = 0;
-
-    const jumpAnimation = setInterval(() => {
-      character.position.y +=
-        count % 2 === 0 ? 0.12 : -0.12;
-
-      count++;
-
-      if (count >= 6) {
-        clearInterval(jumpAnimation);
-      }
-    }, 110);
-  }
-
-  if (type === "error") {
-    let count = 0;
-
-    const shakeAnimation = setInterval(() => {
-      character.rotation.z =
-        count % 2 === 0 ? 0.045 : -0.045;
-
-      count++;
-
-      if (count >= 8) {
-        clearInterval(shakeAnimation);
-
-        character.rotation.z =
-          originalRotation;
-      }
-    }, 70);
-  }
-}
-
-
-/* ========================================
-   MOUSE CHARACTER MOVEMENT
-======================================== */
-
-let targetRotationX = 0;
-let targetRotationY = -0.15;
+/* MOUSE REACTION */
 
 window.addEventListener(
   "mousemove",
   function (event) {
-    if (!character) {
-      return;
-    }
+    const x =
+      event.clientX /
+      window.innerWidth *
+      2 - 1;
 
-    const normalizedX =
-      (event.clientX / window.innerWidth) * 2 - 1;
-
-    const normalizedY =
-      (event.clientY / window.innerHeight) * 2 - 1;
+    const y =
+      event.clientY /
+      window.innerHeight *
+      2 - 1;
 
     targetRotationY =
-      -0.15 + normalizedX * 0.18;
+      0.17 + x * 0.12;
 
     targetRotationX =
-      normalizedY * 0.04;
+      y * 0.025;
   }
 );
 
 
-/* ========================================
-   RENDER LOOP
-======================================== */
+/* RENDER */
 
 function animate() {
   requestAnimationFrame(animate);
 
-  const deltaTime = clock.getDelta();
+  const delta = clock.getDelta();
 
-  if (animationMixer) {
-    animationMixer.update(deltaTime);
+  if (mixer) {
+    mixer.update(delta);
   }
 
   if (character) {
     character.rotation.y +=
-      (targetRotationY -
-        character.rotation.y) * 0.04;
+      (
+        targetRotationY -
+        character.rotation.y
+      ) * 0.04;
 
     character.rotation.x +=
-      (targetRotationX -
-        character.rotation.x) * 0.04;
+      (
+        targetRotationX -
+        character.rotation.x
+      ) * 0.04;
   }
-
-  controls.update();
 
   renderer.render(scene, camera);
 }
@@ -574,91 +291,132 @@ function animate() {
 animate();
 
 
-/* ========================================
-   WINDOW RESIZE
-======================================== */
-
 window.addEventListener(
   "resize",
-  resizeRenderer
-);
-
-function resizeRenderer() {
-  const width =
-    modelContainer.clientWidth;
-
-  const height =
-    modelContainer.clientHeight;
-
-  camera.aspect = width / height;
-
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(width, height);
-
-  renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, 2)
-  );
-}
-
-
-/* ========================================
-   PASSWORD SHOW / HIDE
-======================================== */
-
-passwordToggle.addEventListener(
-  "click",
   function () {
-    const passwordIsHidden =
-      passwordInput.type === "password";
+    const width =
+      characterSection.clientWidth;
 
-    passwordInput.type =
-      passwordIsHidden
-        ? "text"
-        : "password";
+    const height =
+      characterSection.clientHeight;
 
-    passwordToggle.textContent =
-      passwordIsHidden
-        ? "🙈"
-        : "👁";
+    camera.aspect = width / height;
 
-    passwordToggle.setAttribute(
-      "aria-label",
-      passwordIsHidden
-        ? "Hide password"
-        : "Show password"
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width, height);
+
+    renderer.setPixelRatio(
+      Math.min(
+        window.devicePixelRatio,
+        2
+      )
     );
   }
 );
 
 
-/* ========================================
+/* ======================================
+   FORM SWITCHING
+====================================== */
+
+const loginTab =
+  document.getElementById("login-tab");
+
+const signupTab =
+  document.getElementById("signup-tab");
+
+const loginForm =
+  document.getElementById("login-form");
+
+const signupForm =
+  document.getElementById("signup-form");
+
+const openSignup =
+  document.getElementById("open-signup");
+
+const openLogin =
+  document.getElementById("open-login");
+
+
+function showLoginForm() {
+  loginForm.classList.remove("hidden");
+  signupForm.classList.add("hidden");
+
+  loginTab.classList.add("active");
+  signupTab.classList.remove("active");
+}
+
+
+function showSignupForm() {
+  signupForm.classList.remove("hidden");
+  loginForm.classList.add("hidden");
+
+  signupTab.classList.add("active");
+  loginTab.classList.remove("active");
+}
+
+
+loginTab.addEventListener(
+  "click",
+  showLoginForm
+);
+
+signupTab.addEventListener(
+  "click",
+  showSignupForm
+);
+
+openSignup.addEventListener(
+  "click",
+  showSignupForm
+);
+
+openLogin.addEventListener(
+  "click",
+  showLoginForm
+);
+
+
+/* ======================================
+   PASSWORD SHOW / HIDE
+====================================== */
+
+document
+  .querySelectorAll(".password-toggle")
+  .forEach(function (button) {
+    button.addEventListener(
+      "click",
+      function () {
+        const input =
+          document.getElementById(
+            button.dataset.target
+          );
+
+        const hidden =
+          input.type === "password";
+
+        input.type =
+          hidden ? "text" : "password";
+
+        button.textContent =
+          hidden ? "🙈" : "👁";
+      }
+    );
+  });
+
+
+/* ======================================
    VALIDATION
-======================================== */
+====================================== */
 
-function validateEmail(email) {
-  const emailPattern =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  return emailPattern.test(email);
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    .test(email);
 }
 
 
-function clearErrors() {
-  emailError.textContent = "";
-  passwordError.textContent = "";
-
-  emailInput
-    .closest(".input-box")
-    .classList.remove("error");
-
-  passwordInput
-    .closest(".input-box")
-    .classList.remove("error");
-}
-
-
-function showInputError(
+function setError(
   input,
   errorElement,
   message
@@ -671,103 +429,178 @@ function showInputError(
 }
 
 
-emailInput.addEventListener(
-  "input",
-  function () {
-    emailError.textContent = "";
+function clearError(input, errorElement) {
+  errorElement.textContent = "";
 
-    emailInput
-      .closest(".input-box")
-      .classList.remove("error");
+  input
+    .closest(".input-box")
+    .classList.remove("error");
+}
+
+
+function makeCharacterReact(type) {
+  if (!character) {
+    return;
   }
-);
 
+  if (type === "success") {
+    const originalY =
+      character.position.y;
 
-passwordInput.addEventListener(
-  "input",
-  function () {
-    passwordError.textContent = "";
+    let count = 0;
 
-    passwordInput
-      .closest(".input-box")
-      .classList.remove("error");
+    const jumping =
+      setInterval(function () {
+        character.position.y =
+          originalY +
+          (
+            count % 2 === 0
+              ? 0.13
+              : 0
+          );
+
+        count++;
+
+        if (count > 5) {
+          clearInterval(jumping);
+
+          character.position.y =
+            originalY;
+        }
+      }, 120);
   }
-);
+
+  if (type === "error") {
+    const originalZ =
+      character.rotation.z;
+
+    let count = 0;
+
+    const shaking =
+      setInterval(function () {
+        character.rotation.z =
+          count % 2 === 0
+            ? 0.045
+            : -0.045;
+
+        count++;
+
+        if (count > 7) {
+          clearInterval(shaking);
+
+          character.rotation.z =
+            originalZ;
+        }
+      }, 70);
+  }
+}
 
 
-/* ========================================
-   LOGIN SUBMIT
-======================================== */
+/* ======================================
+   LOGIN
+====================================== */
+
+const loginEmail =
+  document.getElementById("login-email");
+
+const loginPassword =
+  document.getElementById(
+    "login-password"
+  );
+
+const loginEmailError =
+  document.getElementById(
+    "login-email-error"
+  );
+
+const loginPasswordError =
+  document.getElementById(
+    "login-password-error"
+  );
+
+const loginSubmit =
+  document.getElementById(
+    "login-submit"
+  );
+
 
 loginForm.addEventListener(
   "submit",
   async function (event) {
     event.preventDefault();
 
-    clearErrors();
+    clearError(
+      loginEmail,
+      loginEmailError
+    );
+
+    clearError(
+      loginPassword,
+      loginPasswordError
+    );
 
     const email =
-      emailInput.value.trim();
+      loginEmail.value.trim();
 
     const password =
-      passwordInput.value.trim();
+      loginPassword.value.trim();
 
-    let formIsValid = true;
+    let valid = true;
 
     if (!email) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Please enter your email address."
+      setError(
+        loginEmail,
+        loginEmailError,
+        "Enter your email address."
       );
 
-      formIsValid = false;
-    } else if (!validateEmail(email)) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Please enter a valid email address."
+      valid = false;
+    } else if (!isValidEmail(email)) {
+      setError(
+        loginEmail,
+        loginEmailError,
+        "Enter a valid email address."
       );
 
-      formIsValid = false;
+      valid = false;
     }
 
     if (!password) {
-      showInputError(
-        passwordInput,
-        passwordError,
-        "Please enter your password."
+      setError(
+        loginPassword,
+        loginPasswordError,
+        "Enter your password."
       );
 
-      formIsValid = false;
+      valid = false;
     } else if (password.length < 6) {
-      showInputError(
-        passwordInput,
-        passwordError,
-        "Password must contain at least 6 characters."
+      setError(
+        loginPassword,
+        loginPasswordError,
+        "Password must have at least 6 characters."
       );
 
-      formIsValid = false;
+      valid = false;
     }
 
-    if (!formIsValid) {
-      playErrorAnimation();
+    if (!valid) {
+      makeCharacterReact("error");
 
       showToast(
-        "Please correct the highlighted fields.",
+        "Check the highlighted fields.",
         "error"
       );
 
       return;
     }
 
-    setLoginLoading(true);
+    loginSubmit.disabled = true;
+    loginSubmit.textContent =
+      "Signing in...";
 
     try {
       /*
-        ADD YOUR FIREBASE LOGIN CODE HERE.
-
-        Example:
+        Add your Firebase login code here:
 
         await signInWithEmailAndPassword(
           auth,
@@ -776,139 +609,291 @@ loginForm.addEventListener(
         );
       */
 
-      await simulateLogin();
+      await delay(1000);
 
-      playSuccessAnimation();
+      makeCharacterReact("success");
 
       showToast(
-        "Login successful. Welcome back!",
+        "Login successful.",
         "success"
       );
 
-      /*
-        Redirect after successful login:
-
-        setTimeout(() => {
-          window.location.href = "home.html";
-        }, 1200);
-      */
     } catch (error) {
       console.error(error);
 
-      playErrorAnimation();
+      makeCharacterReact("error");
 
       showToast(
         error.message ||
-        "Login failed. Please try again.",
+        "Login failed.",
         "error"
       );
+
     } finally {
-      setLoginLoading(false);
+      loginSubmit.disabled = false;
+      loginSubmit.textContent =
+        "Sign In";
     }
   }
 );
 
 
-function simulateLogin() {
-  return new Promise(resolve => {
-    setTimeout(resolve, 1200);
-  });
-}
+/* ======================================
+   SIGN UP
+====================================== */
 
+const signupName =
+  document.getElementById("signup-name");
 
-function setLoginLoading(isLoading) {
-  loginButton.classList.toggle(
-    "loading",
-    isLoading
+const signupEmail =
+  document.getElementById("signup-email");
+
+const signupPassword =
+  document.getElementById(
+    "signup-password"
   );
 
-  loginButton.disabled = isLoading;
-}
+const signupNameError =
+  document.getElementById(
+    "signup-name-error"
+  );
+
+const signupEmailError =
+  document.getElementById(
+    "signup-email-error"
+  );
+
+const signupPasswordError =
+  document.getElementById(
+    "signup-password-error"
+  );
+
+const signupSubmit =
+  document.getElementById(
+    "signup-submit"
+  );
 
 
-/* ========================================
-   OTHER BUTTONS
-======================================== */
+signupForm.addEventListener(
+  "submit",
+  async function (event) {
+    event.preventDefault();
 
-googleButton.addEventListener(
-  "click",
-  function () {
-    /*
-      ADD YOUR FIREBASE GOOGLE LOGIN CODE HERE.
-    */
-
-    showToast(
-      "Connect your Google Sign-In code here.",
-      "success"
+    clearError(
+      signupName,
+      signupNameError
     );
-  }
-);
 
+    clearError(
+      signupEmail,
+      signupEmailError
+    );
 
-forgotPasswordButton.addEventListener(
-  "click",
-  function () {
+    clearError(
+      signupPassword,
+      signupPasswordError
+    );
+
+    const name =
+      signupName.value.trim();
+
     const email =
-      emailInput.value.trim();
+      signupEmail.value.trim();
 
-    if (!email) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Enter your email to reset the password."
+    const password =
+      signupPassword.value.trim();
+
+    let valid = true;
+
+    if (!name) {
+      setError(
+        signupName,
+        signupNameError,
+        "Enter your name."
       );
 
-      emailInput.focus();
-
-      return;
+      valid = false;
     }
 
-    if (!validateEmail(email)) {
-      showInputError(
-        emailInput,
-        emailError,
+    if (!email) {
+      setError(
+        signupEmail,
+        signupEmailError,
+        "Enter your email address."
+      );
+
+      valid = false;
+    } else if (!isValidEmail(email)) {
+      setError(
+        signupEmail,
+        signupEmailError,
         "Enter a valid email address."
       );
 
-      emailInput.focus();
+      valid = false;
+    }
+
+    if (!password) {
+      setError(
+        signupPassword,
+        signupPasswordError,
+        "Create a password."
+      );
+
+      valid = false;
+    } else if (password.length < 6) {
+      setError(
+        signupPassword,
+        signupPasswordError,
+        "Password must have at least 6 characters."
+      );
+
+      valid = false;
+    }
+
+    if (!valid) {
+      makeCharacterReact("error");
+
+      showToast(
+        "Check the highlighted fields.",
+        "error"
+      );
 
       return;
     }
 
-    /*
-      ADD FIREBASE PASSWORD RESET CODE HERE.
+    signupSubmit.disabled = true;
+    signupSubmit.textContent =
+      "Creating account...";
 
-      await sendPasswordResetEmail(auth, email);
-    */
+    try {
+      /*
+        Add Firebase registration code here:
 
-    showToast(
-      "Password reset link will be sent to your email.",
-      "success"
-    );
+        await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+      */
+
+      await delay(1000);
+
+      makeCharacterReact("success");
+
+      showToast(
+        "Account created successfully.",
+        "success"
+      );
+
+      setTimeout(showLoginForm, 1000);
+
+    } catch (error) {
+      console.error(error);
+
+      makeCharacterReact("error");
+
+      showToast(
+        error.message ||
+        "Account creation failed.",
+        "error"
+      );
+
+    } finally {
+      signupSubmit.disabled = false;
+      signupSubmit.textContent =
+        "Create Account";
+    }
   }
 );
 
 
-signupButton.addEventListener(
-  "click",
-  function () {
-    /*
-      Replace with your registration page.
-    */
+/* ======================================
+   OTHER BUTTONS
+====================================== */
 
-    window.location.href = "signup.html";
-  }
-);
+document
+  .getElementById("google-login")
+  .addEventListener(
+    "click",
+    function () {
+      showToast(
+        "Connect your Firebase Google login here.",
+        "success"
+      );
+    }
+  );
 
 
-/* ========================================
-   TOAST MESSAGE
-======================================== */
+document
+  .getElementById("forgot-password")
+  .addEventListener(
+    "click",
+    function () {
+      const email =
+        loginEmail.value.trim();
 
-let toastTimeout;
+      if (!email) {
+        setError(
+          loginEmail,
+          loginEmailError,
+          "Enter your email first."
+        );
+
+        loginEmail.focus();
+
+        return;
+      }
+
+      if (!isValidEmail(email)) {
+        setError(
+          loginEmail,
+          loginEmailError,
+          "Enter a valid email address."
+        );
+
+        loginEmail.focus();
+
+        return;
+      }
+
+      /*
+        Add Firebase reset code here:
+
+        await sendPasswordResetEmail(
+          auth,
+          email
+        );
+      */
+
+      showToast(
+        "Password reset link will be sent.",
+        "success"
+      );
+    }
+  );
+
+
+/* ======================================
+   TOAST
+====================================== */
+
+const toast =
+  document.getElementById("toast");
+
+const toastIcon =
+  document.getElementById("toast-icon");
+
+const toastMessage =
+  document.getElementById(
+    "toast-message"
+  );
+
+let toastTimer;
+
 
 function showToast(message, type) {
-  clearTimeout(toastTimeout);
+  clearTimeout(toastTimer);
 
   toastMessage.textContent = message;
 
@@ -924,7 +909,15 @@ function showToast(message, type) {
 
   toast.classList.add("show");
 
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3500);
+  toastTimer =
+    setTimeout(function () {
+      toast.classList.remove("show");
+    }, 3200);
+}
+
+
+function delay(milliseconds) {
+  return new Promise(resolve =>
+    setTimeout(resolve, milliseconds)
+  );
 }
