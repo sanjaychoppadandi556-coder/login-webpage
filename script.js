@@ -6,7 +6,7 @@ import { GLTFLoader } from
 import { FBXLoader } from
   "three/addons/loaders/FBXLoader.js";
 
-console.log("script.js loaded");
+console.log("script.js loaded successfully");
 
 /* --------------------------------------------------
    HTML elements
@@ -40,15 +40,25 @@ const formMessage =
   document.getElementById("formMessage");
 
 /* --------------------------------------------------
-   Scene
+   File paths
+-------------------------------------------------- */
+
+const MODEL_PATH =
+  "./models/character_optimized.glb";
+
+const ANIMATION_FILES = {
+  idle: "./models/Idle.fbx",
+  walking: "./models/Walking.fbx",
+  talking: "./models/Talking.fbx",
+  pointing: "./models/Pointing.fbx",
+  waving: "./models/Waving.fbx"
+};
+
+/* --------------------------------------------------
+   Three.js scene
 -------------------------------------------------- */
 
 const scene = new THREE.Scene();
-
-/*
-  Modified camera settings.
-  These settings allow a wider visible area.
-*/
 
 const camera = new THREE.PerspectiveCamera(
   40,
@@ -57,8 +67,8 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-camera.position.set(0, 1.2, 8);
-camera.lookAt(0, 0.6, 0);
+camera.position.set(0, 1, 8);
+camera.lookAt(0, 0.7, 0);
 
 /* --------------------------------------------------
    Renderer
@@ -66,7 +76,8 @@ camera.lookAt(0, 0.6, 0);
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
-  alpha: true
+  alpha: true,
+  powerPreference: "high-performance"
 });
 
 renderer.setPixelRatio(
@@ -97,8 +108,8 @@ container.appendChild(renderer.domElement);
 const hemisphereLight =
   new THREE.HemisphereLight(
     0xffffff,
-    0x26304a,
-    2.4
+    0x25304a,
+    2.8
   );
 
 scene.add(hemisphereLight);
@@ -106,19 +117,18 @@ scene.add(hemisphereLight);
 const frontLight =
   new THREE.DirectionalLight(
     0xffffff,
-    3.2
+    3.5
   );
 
 frontLight.position.set(2, 6, 7);
-
 frontLight.castShadow = true;
 
 scene.add(frontLight);
 
 const warmLight =
   new THREE.PointLight(
-    0xffa16c,
-    28,
+    0xff9c67,
+    30,
     20
   );
 
@@ -128,8 +138,8 @@ scene.add(warmLight);
 
 const blueLight =
   new THREE.PointLight(
-    0x5a8cff,
-    22,
+    0x568bff,
+    24,
     18
   );
 
@@ -138,34 +148,34 @@ blueLight.position.set(-5, 2, 3);
 scene.add(blueLight);
 
 /* --------------------------------------------------
-   Ground
+   Floor shadow
 -------------------------------------------------- */
 
-const groundGeometry =
-  new THREE.CircleGeometry(2.3, 64);
+const floorGeometry =
+  new THREE.CircleGeometry(2.4, 64);
 
-const groundMaterial =
+const floorMaterial =
   new THREE.MeshStandardMaterial({
-    color: 0x171b24,
+    color: 0x151a24,
     transparent: true,
-    opacity: 0.44,
-    roughness: 0.8
+    opacity: 0.42,
+    roughness: 0.85
   });
 
-const ground =
+const floor =
   new THREE.Mesh(
-    groundGeometry,
-    groundMaterial
+    floorGeometry,
+    floorMaterial
   );
 
-ground.rotation.x = -Math.PI / 2;
-ground.position.set(-1.8, -1.62, 0);
-ground.receiveShadow = true;
+floor.rotation.x = -Math.PI / 2;
+floor.position.set(-1.9, -1.65, 0);
+floor.receiveShadow = true;
 
-scene.add(ground);
+scene.add(floor);
 
 /* --------------------------------------------------
-   Character variables
+   Character state
 -------------------------------------------------- */
 
 const clock = new THREE.Clock();
@@ -175,252 +185,323 @@ let characterRoot = null;
 let mixer = null;
 let currentAction = null;
 
-let sequenceStarted = false;
+let modelHeight = 1;
+let introStarted = false;
 let formShown = false;
 
 const animationActions = {};
 
 /* --------------------------------------------------
-   Model paths
+   Utility: update loading message
 -------------------------------------------------- */
 
-const MODEL_PATH =
-  "./models/character_optimized.glb";
+function updateLoader(message) {
+  modelLoader.textContent = message;
+  console.log(message);
+}
 
-const animationFiles = {
-  idle: "./models/Idle.fbx",
-  walking: "./models/Walking.fbx",
-  talking: "./models/Talking.fbx",
-  pointing: "./models/Pointing.fbx",
-  waving: "./models/Waving.fbx"
-};
+function hideLoader() {
+  modelLoader.classList.add("hide");
+}
 
 /* --------------------------------------------------
-   Load character
+   Load GLB model
 -------------------------------------------------- */
 
 const gltfLoader = new GLTFLoader();
 
-console.log("Loading GLB:", MODEL_PATH);
+updateLoader("Loading character...");
+
+console.log("Loading model from:", MODEL_PATH);
 
 gltfLoader.load(
   MODEL_PATH,
 
   (gltf) => {
-    console.log("GLB loaded successfully", gltf);
+    console.log("GLB loaded successfully:", gltf);
 
     character = gltf.scene;
 
-    character.traverse((object) => {
-      if (!object.isMesh) {
-        return;
-      }
-
-      object.castShadow = true;
-      object.receiveShadow = true;
-
-      if (object.material) {
-        object.material.side =
-          THREE.DoubleSide;
-
-        object.material.needsUpdate =
-          true;
-      }
-    });
-
-    /*
-      characterRoot controls page positioning.
-      character controls model centering and scale.
-    */
+    prepareCharacterMaterials(character);
 
     characterRoot = new THREE.Group();
+    characterRoot.name = "CharacterRoot";
+
     characterRoot.add(character);
     scene.add(characterRoot);
 
-    /*
-      Get original model dimensions.
-    */
-
-    character.updateMatrixWorld(true);
-
-    const originalBox =
-      new THREE.Box3().setFromObject(character);
-
-    const originalSize =
-      originalBox.getSize(
-        new THREE.Vector3()
-      );
-
-    const originalCenter =
-      originalBox.getCenter(
-        new THREE.Vector3()
-      );
-
-    console.log(
-      "Original model size:",
-      originalSize
-    );
-
-    console.log(
-      "Original model center:",
-      originalCenter
-    );
-
-    /*
-      Move the model itself to the origin.
-    */
-
-    character.position.set(
-      -originalCenter.x,
-      -originalCenter.y,
-      -originalCenter.z
-    );
-
-    /*
-      Automatically scale model based on height.
-    */
-
-    const originalHeight =
-      originalSize.y > 0
-        ? originalSize.y
-        : Math.max(
-            originalSize.x,
-            originalSize.z,
-            1
-          );
-
-    const targetHeight =
-      window.innerWidth <= 760
-        ? 3.2
-        : 4.3;
-
-    const automaticScale =
-      targetHeight / originalHeight;
-
-    character.scale.setScalar(
-      automaticScale
-    );
-
-    /*
-      Recalculate after scaling and centering.
-    */
-
-    character.updateMatrixWorld(true);
-
-    const scaledBox =
-      new THREE.Box3().setFromObject(character);
-
-    const scaledSize =
-      scaledBox.getSize(
-        new THREE.Vector3()
-      );
-
-    const scaledCenter =
-      scaledBox.getCenter(
-        new THREE.Vector3()
-      );
-
-    console.log(
-      "Scaled model size:",
-      scaledSize
-    );
-
-    console.log(
-      "Scaled model center:",
-      scaledCenter
-    );
-
-    /*
-      Correct any remaining center offset.
-    */
-
-    character.position.x -=
-      scaledCenter.x;
-
-    character.position.y -=
-      scaledCenter.y;
-
-    character.position.z -=
-      scaledCenter.z;
-
-    /*
-      Place full character group on screen.
-    */
-
-    setCharacterResponsivePosition();
-
-    characterRoot.rotation.y = 0;
-
-    /*
-      Create animation mixer.
-    */
+    centerAndScaleCharacter();
 
     mixer =
       new THREE.AnimationMixer(character);
 
-    modelLoader.textContent =
-      "Loading animations...";
+    /*
+      Use animations embedded in the GLB when available.
+    */
 
-    loadAllAnimations();
+    if (
+      Array.isArray(gltf.animations) &&
+      gltf.animations.length > 0
+    ) {
+      console.log(
+        "Embedded GLB animations:",
+        gltf.animations.map(
+          (clip) => clip.name
+        )
+      );
+    }
+
+    setResponsiveCharacterPosition();
+
+    loadAllFBXAnimations();
   },
 
   (progress) => {
     if (
-      progress.total &&
+      Number.isFinite(progress.total) &&
       progress.total > 0
     ) {
-      const percentage =
-        Math.round(
-          (
-            progress.loaded /
-            progress.total
-          ) * 100
-        );
+      const percent = Math.round(
+        (
+          progress.loaded /
+          progress.total
+        ) * 100
+      );
 
-      modelLoader.textContent =
-        `Loading character ${percentage}%`;
+      updateLoader(
+        `Loading character ${percent}%`
+      );
     }
   },
 
   (error) => {
     console.error(
-      "GLB failed to load:",
+      "Character GLB failed to load:",
       error
     );
 
-    modelLoader.textContent =
-      "Character could not be loaded";
+    updateLoader(
+      "Character could not be loaded"
+    );
 
-    showSignupForm();
+    setTimeout(() => {
+      hideLoader();
+      showSignupForm();
+    }, 1500);
   }
 );
 
 /* --------------------------------------------------
-   Responsive model position
+   Prepare character materials
 -------------------------------------------------- */
 
-function setCharacterResponsivePosition() {
+function prepareCharacterMaterials(model) {
+  model.traverse((object) => {
+    if (!object.isMesh) {
+      return;
+    }
+
+    object.frustumCulled = false;
+    object.castShadow = true;
+    object.receiveShadow = true;
+
+    const materials =
+      Array.isArray(object.material)
+        ? object.material
+        : [object.material];
+
+    materials.forEach((material) => {
+      if (!material) {
+        return;
+      }
+
+      material.side = THREE.DoubleSide;
+
+      if (material.map) {
+        material.map.colorSpace =
+          THREE.SRGBColorSpace;
+      }
+
+      material.needsUpdate = true;
+    });
+  });
+}
+
+/* --------------------------------------------------
+   Center and scale character automatically
+-------------------------------------------------- */
+
+function centerAndScaleCharacter() {
+  if (!character) {
+    return;
+  }
+
+  /*
+    Reset first so the bounding box is accurate.
+  */
+
+  character.position.set(0, 0, 0);
+  character.rotation.set(0, 0, 0);
+  character.scale.set(1, 1, 1);
+
+  character.updateMatrixWorld(true);
+
+  const originalBox =
+    new THREE.Box3().setFromObject(character);
+
+  const originalSize =
+    originalBox.getSize(
+      new THREE.Vector3()
+    );
+
+  const originalCenter =
+    originalBox.getCenter(
+      new THREE.Vector3()
+    );
+
+  console.log(
+    "Original character size:",
+    originalSize
+  );
+
+  console.log(
+    "Original character center:",
+    originalCenter
+  );
+
+  /*
+    Move model center to local origin.
+  */
+
+  character.position.set(
+    -originalCenter.x,
+    -originalCenter.y,
+    -originalCenter.z
+  );
+
+  const safeHeight =
+    originalSize.y > 0.0001
+      ? originalSize.y
+      : Math.max(
+          originalSize.x,
+          originalSize.z,
+          1
+        );
+
+  const targetHeight =
+    window.innerWidth <= 760
+      ? 3.1
+      : 4.2;
+
+  const scale =
+    targetHeight / safeHeight;
+
+  character.scale.setScalar(scale);
+
+  character.updateMatrixWorld(true);
+
+  /*
+    Check the scaled box and move the feet toward y = 0.
+  */
+
+  const scaledBox =
+    new THREE.Box3().setFromObject(character);
+
+  const scaledSize =
+    scaledBox.getSize(
+      new THREE.Vector3()
+    );
+
+  const scaledCenter =
+    scaledBox.getCenter(
+      new THREE.Vector3()
+    );
+
+  modelHeight = scaledSize.y;
+
+  console.log(
+    "Scaled character size:",
+    scaledSize
+  );
+
+  console.log(
+    "Scaled character center:",
+    scaledCenter
+  );
+
+  character.position.x -= scaledCenter.x;
+  character.position.z -= scaledCenter.z;
+
+  character.updateMatrixWorld(true);
+
+  const finalBox =
+    new THREE.Box3().setFromObject(character);
+
+  /*
+    Move lowest point of the character to local y = 0.
+  */
+
+  character.position.y -= finalBox.min.y;
+
+  character.updateMatrixWorld(true);
+
+  /*
+    Adjust model direction here when it faces backward.
+    Try Math.PI if the character's back faces the camera.
+  */
+
+  character.rotation.y = 0;
+
+  console.log(
+    "Character centered and scaled"
+  );
+}
+
+/* --------------------------------------------------
+   Responsive character placement
+-------------------------------------------------- */
+
+function setResponsiveCharacterPosition() {
   if (!characterRoot) {
     return;
   }
 
-  if (window.innerWidth <= 760) {
+  const isMobile =
+    window.innerWidth <= 760;
+
+  if (isMobile) {
     characterRoot.position.set(
       0,
-      0.55,
-      0.4
+      -1.2,
+      0.3
+    );
+
+    characterRoot.scale.setScalar(0.86);
+
+    floor.position.set(
+      0,
+      -1.25,
+      0
     );
   } else {
     characterRoot.position.set(
-      -1.85,
-      0,
+      -1.9,
+      -1.65,
+      0
+    );
+
+    characterRoot.scale.setScalar(1);
+
+    floor.position.set(
+      -1.9,
+      -1.65,
       0
     );
   }
 }
 
 /* --------------------------------------------------
-   Load FBX animation
+   FBX animations
 -------------------------------------------------- */
 
 const fbxLoader = new FBXLoader();
@@ -456,6 +537,30 @@ function loadFBXAnimation(
 
         clip.name = animationName;
 
+        /*
+          Remove position tracks that may cause the
+          character to jump far away from the screen.
+        */
+
+        clip.tracks = clip.tracks.filter(
+          (track) => {
+            const trackName =
+              track.name.toLowerCase();
+
+            const isRootPosition =
+              trackName.endsWith(
+                ".position"
+              ) &&
+              (
+                trackName.includes("hips") ||
+                trackName.includes("root") ||
+                trackName.includes("armature")
+              );
+
+            return !isRootPosition;
+          }
+        );
+
         const action =
           mixer.clipAction(clip);
 
@@ -477,24 +582,25 @@ function loadFBXAnimation(
           error
         );
 
-        /*
-          Resolve instead of rejecting.
-          One missing animation will not stop everything.
-        */
-
         resolve(false);
       }
     );
   });
 }
 
-async function loadAllAnimations() {
-  const animationEntries =
-    Object.entries(animationFiles);
+async function loadAllFBXAnimations() {
+  if (!mixer) {
+    return;
+  }
+
+  updateLoader("Loading animations...");
+
+  const entries =
+    Object.entries(ANIMATION_FILES);
 
   const results =
     await Promise.all(
-      animationEntries.map(
+      entries.map(
         ([name, path]) =>
           loadFBXAnimation(name, path)
       )
@@ -505,37 +611,41 @@ async function loadAllAnimations() {
     results
   );
 
-  modelLoader.classList.add("hide");
+  console.log(
+    "Available animations:",
+    Object.keys(animationActions)
+  );
 
+  hideLoader();
   startIntroSequence();
 }
 
 /* --------------------------------------------------
-   Play animation
+   Play character animation
 -------------------------------------------------- */
 
 function playAnimation(
-  name,
+  animationName,
   options = {}
 ) {
   const {
     loop = true,
-    fadeDuration = 0.35,
+    fadeDuration = 0.3,
     timeScale = 1
   } = options;
 
-  const newAction =
-    animationActions[name];
+  const action =
+    animationActions[animationName];
 
-  if (!newAction) {
+  if (!action) {
     console.warn(
-      `${name} animation unavailable`
+      `${animationName} animation is unavailable`
     );
 
     return false;
   }
 
-  if (currentAction === newAction) {
+  if (currentAction === action) {
     return true;
   }
 
@@ -545,82 +655,88 @@ function playAnimation(
     );
   }
 
-  newAction.reset();
-  newAction.enabled = true;
+  action.reset();
+  action.enabled = true;
 
-  newAction.setEffectiveTimeScale(
+  action.setEffectiveTimeScale(
     timeScale
   );
 
-  newAction.setEffectiveWeight(1);
+  action.setEffectiveWeight(1);
 
   if (loop) {
-    newAction.setLoop(
+    action.setLoop(
       THREE.LoopRepeat,
       Infinity
     );
+
+    action.clampWhenFinished = false;
   } else {
-    newAction.setLoop(
+    action.setLoop(
       THREE.LoopOnce,
       1
     );
 
-    newAction.clampWhenFinished =
-      true;
+    action.clampWhenFinished = true;
   }
 
-  newAction.fadeIn(
-    fadeDuration
+  action.fadeIn(fadeDuration);
+  action.play();
+
+  currentAction = action;
+
+  console.log(
+    `Playing ${animationName}`
   );
-
-  newAction.play();
-
-  currentAction = newAction;
 
   return true;
 }
 
 /* --------------------------------------------------
-   Intro sequence
+   Intro animation sequence
 -------------------------------------------------- */
 
 function startIntroSequence() {
   if (
-    sequenceStarted ||
+    introStarted ||
     !characterRoot
   ) {
     return;
   }
 
-  sequenceStarted = true;
+  introStarted = true;
 
   const isMobile =
     window.innerWidth <= 760;
 
+  const finalX =
+    isMobile ? 0 : -1.9;
+
   const startX =
-    isMobile ? -1.2 : -4;
+    isMobile ? -1.4 : -4.5;
 
-  const endX =
-    isMobile ? 0 : -1.85;
+  characterRoot.position.x = startX;
 
-  characterRoot.position.x =
-    startX;
-
-  if (
-    !playAnimation("walking", {
+  const walkingAvailable =
+    playAnimation("walking", {
       loop: true,
       timeScale: 1
-    })
-  ) {
-    playAnimation("idle");
+    });
+
+  if (!walkingAvailable) {
+    playAnimation("idle", {
+      loop: true
+    });
   }
 
-  animateCharacterPosition(
+  animateCharacterX(
     startX,
-    endX,
-    2300,
+    finalX,
+    2400,
     () => {
-      playAnimation("idle");
+      playAnimation("idle", {
+        loop: true
+      });
     }
   );
 
@@ -629,7 +745,7 @@ function startIntroSequence() {
       loop: true,
       timeScale: 1
     });
-  }, 2800);
+  }, 2850);
 
   setTimeout(() => {
     showSignupForm();
@@ -638,27 +754,28 @@ function startIntroSequence() {
       loop: false,
       timeScale: 1
     });
-  }, 4600);
+  }, 4700);
 
   setTimeout(() => {
     playAnimation("waving", {
       loop: false,
       timeScale: 1
     });
-  }, 6900);
+  }, 7000);
 
   setTimeout(() => {
     playAnimation("idle", {
-      loop: true
+      loop: true,
+      timeScale: 1
     });
-  }, 9100);
+  }, 9200);
 }
 
 /* --------------------------------------------------
-   Move character
+   Character horizontal movement
 -------------------------------------------------- */
 
-function animateCharacterPosition(
+function animateCharacterX(
   startX,
   endX,
   duration,
@@ -667,7 +784,7 @@ function animateCharacterPosition(
   const startTime =
     performance.now();
 
-  function move(currentTime) {
+  function update(currentTime) {
     if (!characterRoot) {
       return;
     }
@@ -681,7 +798,7 @@ function animateCharacterPosition(
         1
       );
 
-    const easedProgress =
+    const eased =
       1 -
       Math.pow(
         1 - progress,
@@ -692,11 +809,11 @@ function animateCharacterPosition(
       THREE.MathUtils.lerp(
         startX,
         endX,
-        easedProgress
+        eased
       );
 
     if (progress < 1) {
-      requestAnimationFrame(move);
+      requestAnimationFrame(update);
       return;
     }
 
@@ -708,7 +825,7 @@ function animateCharacterPosition(
     }
   }
 
-  requestAnimationFrame(move);
+  requestAnimationFrame(update);
 }
 
 /* --------------------------------------------------
@@ -721,13 +838,12 @@ function showSignupForm() {
   }
 
   formShown = true;
-
   signupCard.classList.add("show");
 }
 
 /*
-  Form fallback.
-  The form still appears if model loading fails.
+  Fallback: always show the form even if the model or
+  animations cannot load.
 */
 
 setTimeout(() => {
@@ -749,11 +865,10 @@ formInputs.forEach((input) => {
     "input",
     () => {
       input.classList.remove(
-        "error"
+        "input-error"
       );
 
       formMessage.textContent = "";
-
       formMessage.className =
         "form-message";
     }
@@ -770,13 +885,15 @@ function showFormError(
   message,
   input
 ) {
-  formMessage.textContent =
-    message;
+  formMessage.textContent = message;
 
   formMessage.className =
     "form-message error";
 
-  input.classList.add("error");
+  input.classList.add(
+    "input-error"
+  );
+
   input.focus();
 
   signupCard.classList.remove(
@@ -804,13 +921,11 @@ signupForm.addEventListener(
     const email =
       emailInput.value.trim();
 
-    formInputs.forEach(
-      (input) => {
-        input.classList.remove(
-          "error"
-        );
-      }
-    );
+    formInputs.forEach((input) => {
+      input.classList.remove(
+        "input-error"
+      );
+    });
 
     if (!fullName) {
       showFormError(
@@ -880,24 +995,30 @@ signupForm.addEventListener(
         loop: false
       });
 
-      console.log({
-        fullName,
-        username,
-        email
-      });
+      console.log(
+        "Form details:",
+        {
+          fullName,
+          username,
+          email
+        }
+      );
     }, 700);
   }
 );
 
 /* --------------------------------------------------
-   Render
+   Render loop
 -------------------------------------------------- */
 
 function animate() {
   requestAnimationFrame(animate);
 
   const delta =
-    clock.getDelta();
+    Math.min(
+      clock.getDelta(),
+      0.05
+    );
 
   if (mixer) {
     mixer.update(delta);
@@ -924,11 +1045,18 @@ window.addEventListener(
 
     camera.updateProjectionMatrix();
 
+    renderer.setPixelRatio(
+      Math.min(
+        window.devicePixelRatio,
+        2
+      )
+    );
+
     renderer.setSize(
       window.innerWidth,
       window.innerHeight
     );
 
-    setCharacterResponsivePosition();
+    setResponsiveCharacterPosition();
   }
 );
