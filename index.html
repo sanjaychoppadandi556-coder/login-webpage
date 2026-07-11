@@ -8,52 +8,32 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>3D Animated Login Page</title>
+  <title>Animated Signup Page</title>
 
-  <link rel="stylesheet" href="./style.css">
-
-  <!-- Three.js import map -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
-    }
-  }
-  </script>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
   <main class="login-page">
 
-    <!-- Background -->
-    <div class="space-background" aria-hidden="true">
-      <div class="stars stars-small"></div>
-      <div class="stars stars-large"></div>
-
-      <div class="space-glow blue-glow"></div>
-      <div class="space-glow orange-glow"></div>
-
-      <div class="planet planet-one"></div>
-      <div class="planet planet-two"></div>
-    </div>
-
-    <!-- Three.js canvas is inserted here -->
-    <div
-      id="characterContainer"
-      aria-hidden="true"
-    ></div>
-
-    <!-- Loading status -->
-    <div
-      id="modelLoader"
-      class="model-loader"
-      role="status"
-      aria-live="polite"
+    <!-- Animated scene from the reference video -->
+    <video
+      id="introVideo"
+      class="intro-video"
+      autoplay
+      muted
+      playsinline
+      preload="auto"
     >
-      Loading character...
-    </div>
+      <source src="153106.mp4" type="video/mp4">
+    </video>
+
+    <!-- Fallback background -->
+    <div class="fallback-background"></div>
+
+    <!-- Dark overlay -->
+    <div class="video-overlay"></div>
 
     <!-- Signup form -->
     <section
@@ -65,49 +45,40 @@
 
       <form id="signupForm" novalidate>
 
-        <label class="input-box">
-          <span class="field-icon" aria-hidden="true">♙</span>
+        <div class="input-box">
+          <span class="input-icon">♙</span>
 
           <input
             id="fullName"
-            name="fullName"
             type="text"
             placeholder="Your name"
             autocomplete="name"
-            maxlength="60"
           >
-        </label>
+        </div>
 
-        <label class="input-box">
-          <span class="field-icon" aria-hidden="true">♙</span>
+        <div class="input-box">
+          <span class="input-icon">♙</span>
 
           <input
             id="username"
-            name="username"
             type="text"
-            placeholder="User name"
+            placeholder="Your name"
             autocomplete="username"
-            maxlength="30"
           >
-        </label>
+        </div>
 
-        <label class="input-box">
-          <span class="field-icon" aria-hidden="true">✉</span>
+        <div class="input-box">
+          <span class="input-icon">✉</span>
 
           <input
             id="email"
-            name="email"
             type="email"
             placeholder="Email address"
             autocomplete="email"
-            maxlength="100"
           >
-        </label>
+        </div>
 
-        <button
-          id="nextButton"
-          type="submit"
-        >
+        <button id="nextButton" type="submit">
           Next
         </button>
 
@@ -120,12 +91,18 @@
       </form>
     </section>
 
+    <!-- Replay button -->
+    <button
+      id="replayButton"
+      class="replay-button"
+      type="button"
+      aria-label="Replay animation"
+    >
+      ↻
+    </button>
+
   </main>
 
-  <script
-    type="module"
-    src="./script.js"
-  ></script>
-
+  <script src="script.js"></script>
 </body>
 </html>
