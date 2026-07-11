@@ -1,291 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  >
+  />
 
-  <title>3D Character Login</title>
+  <title>3D Animated Character</title>
 
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-
-  <main class="page">
-
-    <div class="space-background"></div>
-    <div class="stars stars-one"></div>
-    <div class="stars stars-two"></div>
-
-    <div class="orange-frame"></div>
-
-    <!-- 3D CHARACTER -->
-    <section class="character-section">
-
-      <div id="model-status">
-        Loading character...
-      </div>
-
-      <canvas id="character-canvas"></canvas>
-
-    </section>
-
-    <!-- LOGIN / SIGN-UP CARD -->
-    <section class="form-section">
-
-      <div class="form-card">
-
-        <div class="tabs">
-          <button
-            type="button"
-            id="login-tab"
-            class="tab-button active"
-          >
-            Login
-          </button>
-
-          <button
-            type="button"
-            id="signup-tab"
-            class="tab-button"
-          >
-            Sign Up
-          </button>
-        </div>
-
-        <!-- LOGIN FORM -->
-        <form id="login-form" class="account-form">
-
-          <h1>Login</h1>
-
-          <p class="form-description">
-            Sign in to continue
-          </p>
-
-          <div class="input-group">
-            <label for="login-email">
-              Email address
-            </label>
-
-            <div class="input-box">
-              <span>✉</span>
-
-              <input
-                type="email"
-                id="login-email"
-                placeholder="Enter your email"
-                autocomplete="email"
-              >
-            </div>
-
-            <small id="login-email-error"></small>
-          </div>
-
-          <div class="input-group">
-            <label for="login-password">
-              Password
-            </label>
-
-            <div class="input-box">
-              <span>🔒</span>
-
-              <input
-                type="password"
-                id="login-password"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-              >
-
-              <button
-                type="button"
-                class="password-toggle"
-                data-target="login-password"
-              >
-                👁
-              </button>
-            </div>
-
-            <small id="login-password-error"></small>
-          </div>
-
-          <div class="form-options">
-
-            <label class="remember">
-              <input type="checkbox">
-              Remember me
-            </label>
-
-            <button
-              type="button"
-              id="forgot-password"
-              class="text-button"
-            >
-              Forgot password?
-            </button>
-
-          </div>
-
-          <button
-            type="submit"
-            id="login-submit"
-            class="primary-button"
-          >
-            Sign In
-          </button>
-
-          <div class="divider">
-            <span></span>
-            <p>or</p>
-            <span></span>
-          </div>
-
-          <button
-            type="button"
-            id="google-login"
-            class="google-button"
-          >
-            <span class="google-icon">G</span>
-            Continue with Google
-          </button>
-
-          <p class="switch-text">
-            Don't have an account?
-
-            <button
-              type="button"
-              id="open-signup"
-              class="text-button"
-            >
-              Create account
-            </button>
-          </p>
-
-        </form>
-
-        <!-- SIGN-UP FORM -->
-        <form
-          id="signup-form"
-          class="account-form hidden"
-        >
-
-          <h1>Sign Up</h1>
-
-          <p class="form-description">
-            Create your account
-          </p>
-
-          <div class="input-group">
-            <label for="signup-name">
-              Your name
-            </label>
-
-            <div class="input-box">
-              <span>👤</span>
-
-              <input
-                type="text"
-                id="signup-name"
-                placeholder="Enter your name"
-                autocomplete="name"
-              >
-            </div>
-
-            <small id="signup-name-error"></small>
-          </div>
-
-          <div class="input-group">
-            <label for="signup-email">
-              Email address
-            </label>
-
-            <div class="input-box">
-              <span>✉</span>
-
-              <input
-                type="email"
-                id="signup-email"
-                placeholder="Enter your email"
-                autocomplete="email"
-              >
-            </div>
-
-            <small id="signup-email-error"></small>
-          </div>
-
-          <div class="input-group">
-            <label for="signup-password">
-              Password
-            </label>
-
-            <div class="input-box">
-              <span>🔒</span>
-
-              <input
-                type="password"
-                id="signup-password"
-                placeholder="Create a password"
-                autocomplete="new-password"
-              >
-
-              <button
-                type="button"
-                class="password-toggle"
-                data-target="signup-password"
-              >
-                👁
-              </button>
-            </div>
-
-            <small id="signup-password-error"></small>
-          </div>
-
-          <button
-            type="submit"
-            id="signup-submit"
-            class="primary-button"
-          >
-            Create Account
-          </button>
-
-          <p class="switch-text">
-            Already have an account?
-
-            <button
-              type="button"
-              id="open-login"
-              class="text-button"
-            >
-              Login
-            </button>
-          </p>
-
-        </form>
-
-      </div>
-
-    </section>
-
-  </main>
-
-  <div id="toast" class="toast">
-    <span id="toast-icon">✓</span>
-    <p id="toast-message"></p>
-  </div>
+  <link rel="stylesheet" href="style.css" />
 
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
       }
     }
   </script>
+</head>
+
+<body>
+  <div id="loadingScreen">
+    <div class="loader"></div>
+    <p id="loadingText">Loading character...</p>
+  </div>
+
+  <div id="gameContainer"></div>
+
+  <div class="instructions">
+    <h2>Character Controls</h2>
+    <p><strong>W / ↑</strong> Move forward</p>
+    <p><strong>S / ↓</strong> Move backward</p>
+    <p><strong>A / ←</strong> Turn left</p>
+    <p><strong>D / →</strong> Turn right</p>
+  </div>
+
+  <div class="animation-buttons">
+    <button data-animation="idle">Idle</button>
+    <button data-animation="talking">Talking</button>
+    <button data-animation="pointing">Pointing</button>
+    <button data-animation="waving">Waving</button>
+  </div>
 
   <script type="module" src="script.js"></script>
-
 </body>
 </html>
