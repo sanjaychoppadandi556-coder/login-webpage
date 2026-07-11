@@ -10,8 +10,9 @@
 
   <title>3D Animated Login Page</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="./style.css">
 
+  <!-- Three.js import map -->
   <script type="importmap">
   {
     "imports": {
@@ -26,21 +27,35 @@
 
   <main class="login-page">
 
-    <div class="space-background">
-      <div class="stars stars-one"></div>
-      <div class="stars stars-two"></div>
+    <!-- Background -->
+    <div class="space-background" aria-hidden="true">
+      <div class="stars stars-small"></div>
+      <div class="stars stars-large"></div>
+
       <div class="space-glow blue-glow"></div>
       <div class="space-glow orange-glow"></div>
+
       <div class="planet planet-one"></div>
       <div class="planet planet-two"></div>
     </div>
 
-    <div id="characterContainer"></div>
+    <!-- Three.js canvas is inserted here -->
+    <div
+      id="characterContainer"
+      aria-hidden="true"
+    ></div>
 
-    <div id="modelLoader" class="model-loader">
+    <!-- Loading status -->
+    <div
+      id="modelLoader"
+      class="model-loader"
+      role="status"
+      aria-live="polite"
+    >
       Loading character...
     </div>
 
+    <!-- Signup form -->
     <section
       id="signupCard"
       class="signup-card"
@@ -50,50 +65,67 @@
 
       <form id="signupForm" novalidate>
 
-        <div class="input-box">
-          <span class="field-icon">♙</span>
+        <label class="input-box">
+          <span class="field-icon" aria-hidden="true">♙</span>
 
           <input
             id="fullName"
+            name="fullName"
             type="text"
             placeholder="Your name"
             autocomplete="name"
+            maxlength="60"
           >
-        </div>
+        </label>
 
-        <div class="input-box">
-          <span class="field-icon">♙</span>
+        <label class="input-box">
+          <span class="field-icon" aria-hidden="true">♙</span>
 
           <input
             id="username"
+            name="username"
             type="text"
             placeholder="User name"
             autocomplete="username"
+            maxlength="30"
           >
-        </div>
+        </label>
 
-        <div class="input-box">
-          <span class="field-icon">✉</span>
+        <label class="input-box">
+          <span class="field-icon" aria-hidden="true">✉</span>
 
           <input
             id="email"
+            name="email"
             type="email"
             placeholder="Email address"
             autocomplete="email"
+            maxlength="100"
           >
-        </div>
+        </label>
 
-        <button id="nextButton" type="submit">
+        <button
+          id="nextButton"
+          type="submit"
+        >
           Next
         </button>
 
-        <p id="formMessage" class="form-message"></p>
+        <p
+          id="formMessage"
+          class="form-message"
+          aria-live="polite"
+        ></p>
 
       </form>
     </section>
 
   </main>
 
-  <script type="module" src="script.js"></script>
+  <script
+    type="module"
+    src="./script.js"
+  ></script>
+
 </body>
 </html>
