@@ -32,15 +32,14 @@ const replayButton =
   document.getElementById("replayButton");
 
 /* =========================================
-   VIDEO TIMING
-
-   In the reference video, the signup form
-   becomes clearly visible at approximately
-   5 seconds.
+   SETTINGS
 ========================================= */
 
-const FORM_SHOW_TIME = 4.85;
-const REPLAY_SHOW_TIME = 9.6;
+/*
+  Change this value if the form appears too
+  early or too late in the video.
+*/
+const FORM_SHOW_TIME = 4.8;
 
 let formShown = false;
 
@@ -71,6 +70,25 @@ function hideSignupForm() {
 }
 
 /* =========================================
+   START VIDEO
+========================================= */
+
+async function startVideo() {
+  introVideo.muted = true;
+
+  try {
+    await introVideo.play();
+
+    console.log("Video started successfully");
+  } catch (error) {
+    console.warn(
+      "Video autoplay was blocked:",
+      error
+    );
+  }
+}
+
+/* =========================================
    VIDEO EVENTS
 ========================================= */
 
@@ -81,25 +99,19 @@ introVideo.addEventListener(
       "Video duration:",
       introVideo.duration
     );
+
+    startVideo();
   }
 );
 
 introVideo.addEventListener(
   "timeupdate",
   () => {
-    const currentTime =
-      introVideo.currentTime;
-
     if (
-      currentTime >= FORM_SHOW_TIME
+      introVideo.currentTime >=
+      FORM_SHOW_TIME
     ) {
       showSignupForm();
-    }
-
-    if (
-      currentTime >= REPLAY_SHOW_TIME
-    ) {
-      replayButton.classList.add("show");
     }
   }
 );
@@ -117,7 +129,7 @@ introVideo.addEventListener(
   "error",
   () => {
     console.error(
-      "The video could not be loaded."
+      "153106.mp4 could not be loaded."
     );
 
     showSignupForm();
@@ -127,7 +139,7 @@ introVideo.addEventListener(
 );
 
 /*
-  Autoplay fallback.
+  Fallback in case video events do not fire.
 */
 
 setTimeout(() => {
@@ -137,7 +149,7 @@ setTimeout(() => {
 }, 6000);
 
 /* =========================================
-   REPLAY
+   REPLAY BUTTON
 ========================================= */
 
 replayButton.addEventListener(
@@ -199,14 +211,15 @@ function isValidEmail(email) {
 }
 
 /* =========================================
-   SHOW ERROR
+   ERROR MESSAGE
 ========================================= */
 
 function showFormError(
   message,
   input
 ) {
-  formMessage.textContent = message;
+  formMessage.textContent =
+    message;
 
   formMessage.className =
     "form-message error";
@@ -329,20 +342,12 @@ signupForm.addEventListener(
 );
 
 /* =========================================
-   START VIDEO
+   PAGE LOAD
 ========================================= */
 
-async function startVideo() {
-  introVideo.muted = true;
-
-  try {
-    await introVideo.play();
-  } catch (error) {
-    console.warn(
-      "Autoplay was blocked:",
-      error
-    );
+window.addEventListener(
+  "load",
+  () => {
+    startVideo();
   }
-}
-
-startVideo();
+);
