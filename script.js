@@ -246,14 +246,20 @@ async function loadCharacter() {
        * If your model becomes upside down, change
        * -Math.PI / 2 to Math.PI / 2.
        */
-      character.rotation.x = -Math.PI / 2;
+      character = gltf.scene;
 
-      prepareCharacter(character);
-      fitCharacterToScene(character);
+// Keep the model upright
+character.rotation.set(0, 0, 0);
 
-      scene.add(character);
+prepareCharacter(character);
+fitCharacterToScene(character);
 
-      mixer = new THREE.AnimationMixer(character);
+// Slightly lift the feet above the ground
+character.position.y += 0.02;
+
+scene.add(character);
+
+mixer = new THREE.AnimationMixer(character);
 
       try {
         const animationEntries =
