@@ -3,199 +3,44 @@ import * as THREE from "three";
 import { GLTFLoader } from
   "three/addons/loaders/GLTFLoader.js";
 
+import { FBXLoader } from
+  "three/addons/loaders/FBXLoader.js";
+
 import { OrbitControls } from
   "three/addons/controls/OrbitControls.js";
 
-
-/* ========================================
-   HTML ELEMENTS
-======================================== */
-
-const canvas = document.getElementById(
-  "character-canvas"
-);
-
-const modelContainer = document.getElementById(
-  "model-container"
-);
-
-const modelLoader = document.getElementById(
-  "model-loader"
-);
-
-const loginForm = document.getElementById(
-  "login-form"
-);
-
-const emailInput = document.getElementById(
-  "email"
-);
-
-const passwordInput = document.getElementById(
-  "password"
-);
-
-const emailError = document.getElementById(
-  "email-error"
-);
-
-const passwordError = document.getElementById(
-  "password-error"
-);
-
-const passwordToggle = document.getElementById(
-  "password-toggle"
-);
-
-const loginButton = document.getElementById(
-  "login-button"
-);
-
-const googleButton = document.getElementById(
-  "google-button"
-);
-
-const forgotPasswordButton = document.getElementById(
-  "forgot-password"
-);
-
-const signupButton = document.getElementById(
-  "signup-button"
-);
-
-const toast = document.getElementById(
-  "toast"
-);
-
-const toastIcon = document.getElementById(
-  "toast-icon"
-);
-
-const toastMessage = document.getElementById(
-  "toast-message"
-);
-
-
-/* ========================================
-   THREE.JS SCENE
-======================================== */
+const container = document.getElementById("gameContainer");
+const loadingScreen = document.getElementById("loadingScreen");
+const loadingText = document.getElementById("loadingText");
 
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87bde8);
+scene.fog = new THREE.Fog(0x87bde8, 20, 80);
 
 const camera = new THREE.PerspectiveCamera(
-  35,
-  modelContainer.clientWidth /
-    modelContainer.clientHeight,
+  55,
+  window.innerWidth / window.innerHeight,
   0.1,
-  100
+  200
 );
 
-camera.position.set(0, 1.6, 6);
+camera.position.set(0, 3.5, 7);
 
 const renderer = new THREE.WebGLRenderer({
-  canvas,
-  alpha: true,
   antialias: true
 });
 
-renderer.setPixelRatio(
-  Math.min(window.devicePixelRatio, 2)
-);
-
-renderer.setSize(
-  modelContainer.clientWidth,
-  modelContainer.clientHeight
-);
-
-renderer.outputColorSpace =
-  THREE.SRGBColorSpace;
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-renderer.shadowMap.type =
-  THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
 
-
-/* ========================================
-   LIGHTS
-======================================== */
-
-const ambientLight = new THREE.AmbientLight(
-  0xffffff,
-  1.8
-);
-
-scene.add(ambientLight);
-
-
-const mainLight = new THREE.DirectionalLight(
-  0xffffff,
-  3.5
-);
-
-mainLight.position.set(4, 7, 5);
-
-mainLight.castShadow = true;
-
-mainLight.shadow.mapSize.set(2048, 2048);
-
-scene.add(mainLight);
-
-
-const purpleLight = new THREE.PointLight(
-  0x7959ff,
-  18,
-  12
-);
-
-purpleLight.position.set(-4, 3, 3);
-
-scene.add(purpleLight);
-
-
-const blueLight = new THREE.PointLight(
-  0x3478ff,
-  10,
-  10
-);
-
-blueLight.position.set(4, 1, -2);
-
-scene.add(blueLight);
-
-
-/* ========================================
-   FLOOR
-======================================== */
-
-const floorGeometry =
-  new THREE.CircleGeometry(2.4, 64);
-
-const floorMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x11121a,
-    transparent: true,
-    opacity: 0.48,
-    roughness: 0.75
-  });
-
-const floor = new THREE.Mesh(
-  floorGeometry,
-  floorMaterial
-);
-
-floor.rotation.x = -Math.PI / 2;
-
-floor.position.y = -1.53;
-
-floor.receiveShadow = true;
-
-scene.add(floor);
-
-
-/* ========================================
-   ORBIT CONTROLS
-======================================== */
+container.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(
   camera,
@@ -203,728 +48,398 @@ const controls = new OrbitControls(
 );
 
 controls.enableDamping = true;
-
 controls.enablePan = false;
+controls.minDistance = 3;
+controls.maxDistance = 12;
+controls.maxPolarAngle = Math.PI / 2.05;
+controls.target.set(0, 1.5, 0);
 
-controls.enableZoom = false;
+const hemisphereLight = new THREE.HemisphereLight(
+  0xffffff,
+  0x445566,
+  2.3
+);
 
-controls.minPolarAngle = Math.PI / 2.8;
+scene.add(hemisphereLight);
 
-controls.maxPolarAngle = Math.PI / 1.9;
+const directionalLight = new THREE.DirectionalLight(
+  0xffffff,
+  3
+);
 
-controls.target.set(0, 0.4, 0);
+directionalLight.position.set(5, 10, 7);
+directionalLight.castShadow = true;
 
+directionalLight.shadow.mapSize.set(2048, 2048);
+directionalLight.shadow.camera.left = -15;
+directionalLight.shadow.camera.right = 15;
+directionalLight.shadow.camera.top = 15;
+directionalLight.shadow.camera.bottom = -15;
 
-/* ========================================
-   LOAD GLB CHARACTER
-======================================== */
+scene.add(directionalLight);
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(100, 100),
+  new THREE.MeshStandardMaterial({
+    color: 0x3b8b43,
+    roughness: 0.9
+  })
+);
+
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+
+scene.add(ground);
+
+const grid = new THREE.GridHelper(
+  100,
+  100,
+  0xffffff,
+  0xffffff
+);
+
+grid.material.opacity = 0.12;
+grid.material.transparent = true;
+grid.position.y = 0.01;
+
+scene.add(grid);
 
 const gltfLoader = new GLTFLoader();
-
-let character = null;
-let animationMixer = null;
-let currentAction = null;
-let animationActions = [];
-
+const fbxLoader = new FBXLoader();
 const clock = new THREE.Clock();
 
-gltfLoader.load(
-  "./character.glb",
+let character = null;
+let mixer = null;
+let currentAction = null;
 
-  function (gltf) {
-    character = gltf.scene;
+const actions = {};
+const keys = {};
 
-    character.traverse(function (object) {
-      if (object.isMesh) {
-        object.castShadow = true;
-        object.receiveShadow = true;
+const movementSpeed = 2.7;
+const rotationSpeed = 2.3;
 
-        if (object.material) {
-          object.material.needsUpdate = true;
+const animationFiles = {
+  idle: "./models/Idle.fbx",
+  walking: "./models/Walking.fbx",
+  talking: "./models/Talking.fbx",
+  pointing: "./models/Pointing.fbx",
+  waving: "./models/Waving.fbx"
+};
+
+const loopingAnimations = new Set([
+  "idle",
+  "walking",
+  "talking"
+]);
+
+async function loadFBXAnimation(name, path) {
+  return new Promise((resolve, reject) => {
+    fbxLoader.load(
+      path,
+      (fbx) => {
+        const clip = fbx.animations[0];
+
+        if (!clip) {
+          reject(
+            new Error(`No animation clip found in ${path}`)
+          );
+          return;
         }
-      }
-    });
 
-    scene.add(character);
+        clip.name = name;
 
-    fitModelToScene(character);
+        const action = mixer.clipAction(clip);
 
-    if (
-      gltf.animations &&
-      gltf.animations.length > 0
-    ) {
-      animationMixer =
-        new THREE.AnimationMixer(character);
+        if (loopingAnimations.has(name)) {
+          action.setLoop(THREE.LoopRepeat, Infinity);
+          action.clampWhenFinished = false;
+        } else {
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+        }
 
-      animationActions =
-        gltf.animations.map(function (clip) {
-          return {
-            name: clip.name.toLowerCase(),
-            action:
-              animationMixer.clipAction(clip)
-          };
-        });
+        actions[name] = action;
+        resolve();
+      },
+      undefined,
+      reject
+    );
+  });
+}
 
-      console.log(
-        "Available animations:",
-        gltf.animations.map(
-          animation => animation.name
-        )
-      );
+function prepareCharacter(model) {
+  model.traverse((object) => {
+    if (!object.isMesh) return;
 
-      playDefaultAnimation();
+    object.castShadow = true;
+    object.receiveShadow = true;
+
+    object.frustumCulled = false;
+
+    if (object.material) {
+      const materials = Array.isArray(object.material)
+        ? object.material
+        : [object.material];
+
+      materials.forEach((material) => {
+        if (material.map) {
+          material.map.colorSpace = THREE.SRGBColorSpace;
+        }
+
+        material.needsUpdate = true;
+      });
     }
+  });
+}
 
-    modelLoader.classList.add("hidden");
-  },
+function fitCharacterToScene(model) {
+  const box = new THREE.Box3().setFromObject(model);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
 
-  function (progress) {
-    if (progress.total > 0) {
+  box.getSize(size);
+  box.getCenter(center);
+
+  const desiredHeight = 2.8;
+
+  if (size.y > 0) {
+    const scale = desiredHeight / size.y;
+    model.scale.setScalar(scale);
+  }
+
+  const scaledBox = new THREE.Box3().setFromObject(model);
+  const scaledCenter = new THREE.Vector3();
+
+  scaledBox.getCenter(scaledCenter);
+
+  model.position.x -= scaledCenter.x;
+  model.position.z -= scaledCenter.z;
+  model.position.y -= scaledBox.min.y;
+}
+
+async function loadCharacter() {
+  loadingText.textContent = "Loading character model...";
+
+  gltfLoader.load(
+    "./models/character_optimized.glb",
+
+    async (gltf) => {
+      character = gltf.scene;
+
+      prepareCharacter(character);
+      fitCharacterToScene(character);
+
+      scene.add(character);
+
+      mixer = new THREE.AnimationMixer(character);
+
+      try {
+        const animationEntries =
+          Object.entries(animationFiles);
+
+        for (let index = 0;
+          index < animationEntries.length;
+          index += 1) {
+
+          const [name, path] = animationEntries[index];
+
+          loadingText.textContent =
+            `Loading ${name} animation...`;
+
+          await loadFBXAnimation(name, path);
+        }
+
+        playAnimation("idle");
+
+        loadingScreen.style.display = "none";
+      } catch (error) {
+        console.error(
+          "Animation loading error:",
+          error
+        );
+
+        loadingText.textContent =
+          "Character loaded, but an animation failed.";
+
+        setTimeout(() => {
+          loadingScreen.style.display = "none";
+        }, 2000);
+      }
+    },
+
+    (progress) => {
+      if (!progress.total) return;
+
       const percentage = Math.round(
         (progress.loaded / progress.total) * 100
       );
 
-      modelLoader.textContent =
-        `Loading character... ${percentage}%`;
+      loadingText.textContent =
+        `Loading character: ${percentage}%`;
+    },
+
+    (error) => {
+      console.error(
+        "Character loading failed:",
+        error
+      );
+
+      loadingText.textContent =
+        "Failed to load character_optimized.glb";
     }
-  },
-
-  function (error) {
-    console.error(
-      "Model loading failed:",
-      error
-    );
-
-    modelLoader.textContent =
-      "Character could not be loaded. Check character.glb.";
-  }
-);
-
-
-/* ========================================
-   MODEL SIZE AND POSITION
-======================================== */
-
-function fitModelToScene(model) {
-  const box = new THREE.Box3().setFromObject(model);
-
-  const size = box.getSize(
-    new THREE.Vector3()
-  );
-
-  const center = box.getCenter(
-    new THREE.Vector3()
-  );
-
-  model.position.x -= center.x;
-  model.position.y -= center.y;
-  model.position.z -= center.z;
-
-  const maximumDimension = Math.max(
-    size.x,
-    size.y,
-    size.z
-  );
-
-  const desiredHeight = 3.6;
-
-  const scale =
-    desiredHeight / maximumDimension;
-
-  model.scale.setScalar(scale);
-
-  const updatedBox =
-    new THREE.Box3().setFromObject(model);
-
-  const updatedCenter =
-    updatedBox.getCenter(
-      new THREE.Vector3()
-    );
-
-  model.position.x -= updatedCenter.x;
-  model.position.z -= updatedCenter.z;
-
-  model.position.y =
-    -updatedBox.min.y - 1.52;
-
-  model.rotation.y = -0.15;
-}
-
-
-/* ========================================
-   CHARACTER ANIMATIONS
-======================================== */
-
-function findAnimation(keywords) {
-  return animationActions.find(
-    animationItem =>
-      keywords.some(keyword =>
-        animationItem.name.includes(keyword)
-      )
   );
 }
 
+function playAnimation(name) {
+  const nextAction = actions[name];
 
-function playAnimation(
-  animationItem,
-  loop = true
-) {
-  if (!animationItem) {
-    return false;
+  if (!nextAction) {
+    console.warn(`Animation "${name}" is not loaded.`);
+    return;
   }
 
-  if (
-    currentAction === animationItem.action
-  ) {
-    return true;
-  }
+  if (currentAction === nextAction) return;
 
   if (currentAction) {
-    currentAction.fadeOut(0.3);
+    currentAction.fadeOut(0.25);
   }
 
-  currentAction = animationItem.action;
-
-  currentAction.reset();
-
-  currentAction.setLoop(
-    loop
-      ? THREE.LoopRepeat
-      : THREE.LoopOnce,
-    loop ? Infinity : 1
-  );
-
-  currentAction.clampWhenFinished = !loop;
-
-  currentAction
-    .fadeIn(0.3)
+  nextAction
+    .reset()
+    .setEffectiveTimeScale(1)
+    .setEffectiveWeight(1)
+    .fadeIn(0.25)
     .play();
 
-  return true;
+  currentAction = nextAction;
+
+  document
+    .querySelectorAll("[data-animation]")
+    .forEach((button) => {
+      button.classList.toggle(
+        "active",
+        button.dataset.animation === name
+      );
+    });
 }
 
+function updateCharacterMovement(delta) {
+  if (!character) return;
 
-function playDefaultAnimation() {
-  const idleAnimation = findAnimation([
-    "idle",
-    "stand",
-    "breath"
-  ]);
+  const movingForward =
+    keys.KeyW || keys.ArrowUp;
 
-  const walkingAnimation = findAnimation([
-    "walk"
-  ]);
+  const movingBackward =
+    keys.KeyS || keys.ArrowDown;
 
-  const firstAnimation =
-    animationActions[0];
+  const turningLeft =
+    keys.KeyA || keys.ArrowLeft;
 
-  playAnimation(
-    idleAnimation ||
-    walkingAnimation ||
-    firstAnimation,
-    true
+  const turningRight =
+    keys.KeyD || keys.ArrowRight;
+
+  if (turningLeft) {
+    character.rotation.y += rotationSpeed * delta;
+  }
+
+  if (turningRight) {
+    character.rotation.y -= rotationSpeed * delta;
+  }
+
+  let movementDirection = 0;
+
+  if (movingForward) {
+    movementDirection = 1;
+  }
+
+  if (movingBackward) {
+    movementDirection = -1;
+  }
+
+  if (movementDirection !== 0) {
+    const direction = new THREE.Vector3(
+      0,
+      0,
+      movementDirection
+    );
+
+    direction.applyQuaternion(character.quaternion);
+    direction.normalize();
+
+    character.position.addScaledVector(
+      direction,
+      movementSpeed * delta
+    );
+
+    playAnimation("walking");
+  } else if (
+    currentAction === actions.walking
+  ) {
+    playAnimation("idle");
+  }
+
+  controls.target.lerp(
+    new THREE.Vector3(
+      character.position.x,
+      character.position.y + 1.4,
+      character.position.z
+    ),
+    0.08
   );
 }
 
+window.addEventListener("keydown", (event) => {
+  keys[event.code] = true;
 
-function playSuccessAnimation() {
-  const successAnimation = findAnimation([
-    "celebrate",
-    "happy",
-    "dance",
-    "victory",
-    "wave",
-    "jump"
-  ]);
-
-  if (!successAnimation) {
-    temporaryCharacterEffect("success");
-    return;
+  if (
+    event.code.startsWith("Arrow")
+  ) {
+    event.preventDefault();
   }
+});
 
-  playAnimation(successAnimation, false);
+window.addEventListener("keyup", (event) => {
+  keys[event.code] = false;
+});
 
-  setTimeout(() => {
-    playDefaultAnimation();
-  }, 2200);
-}
+document
+  .querySelectorAll("[data-animation]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      playAnimation(button.dataset.animation);
+    });
+  });
 
-
-function playErrorAnimation() {
-  const errorAnimation = findAnimation([
-    "sad",
-    "no",
-    "fail",
-    "disappointed"
-  ]);
-
-  if (!errorAnimation) {
-    temporaryCharacterEffect("error");
-    return;
-  }
-
-  playAnimation(errorAnimation, false);
-
-  setTimeout(() => {
-    playDefaultAnimation();
-  }, 1800);
-}
-
-
-function temporaryCharacterEffect(type) {
-  if (!character) {
-    return;
-  }
-
-  const originalRotation =
-    character.rotation.z;
-
-  if (type === "success") {
-    let count = 0;
-
-    const jumpAnimation = setInterval(() => {
-      character.position.y +=
-        count % 2 === 0 ? 0.12 : -0.12;
-
-      count++;
-
-      if (count >= 6) {
-        clearInterval(jumpAnimation);
-      }
-    }, 110);
-  }
-
-  if (type === "error") {
-    let count = 0;
-
-    const shakeAnimation = setInterval(() => {
-      character.rotation.z =
-        count % 2 === 0 ? 0.045 : -0.045;
-
-      count++;
-
-      if (count >= 8) {
-        clearInterval(shakeAnimation);
-
-        character.rotation.z =
-          originalRotation;
-      }
-    }, 70);
-  }
-}
-
-
-/* ========================================
-   MOUSE CHARACTER MOVEMENT
-======================================== */
-
-let targetRotationX = 0;
-let targetRotationY = -0.15;
-
-window.addEventListener(
-  "mousemove",
-  function (event) {
-    if (!character) {
-      return;
-    }
-
-    const normalizedX =
-      (event.clientX / window.innerWidth) * 2 - 1;
-
-    const normalizedY =
-      (event.clientY / window.innerHeight) * 2 - 1;
-
-    targetRotationY =
-      -0.15 + normalizedX * 0.18;
-
-    targetRotationX =
-      normalizedY * 0.04;
-  }
-);
-
-
-/* ========================================
-   RENDER LOOP
-======================================== */
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  const deltaTime = clock.getDelta();
-
-  if (animationMixer) {
-    animationMixer.update(deltaTime);
-  }
-
-  if (character) {
-    character.rotation.y +=
-      (targetRotationY -
-        character.rotation.y) * 0.04;
-
-    character.rotation.x +=
-      (targetRotationX -
-        character.rotation.x) * 0.04;
-  }
-
-  controls.update();
-
-  renderer.render(scene, camera);
-}
-
-animate();
-
-
-/* ========================================
-   WINDOW RESIZE
-======================================== */
-
-window.addEventListener(
-  "resize",
-  resizeRenderer
-);
-
-function resizeRenderer() {
-  const width =
-    modelContainer.clientWidth;
-
-  const height =
-    modelContainer.clientHeight;
-
-  camera.aspect = width / height;
+window.addEventListener("resize", () => {
+  camera.aspect =
+    window.innerWidth / window.innerHeight;
 
   camera.updateProjectionMatrix();
 
-  renderer.setSize(width, height);
+  renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
 
   renderer.setPixelRatio(
     Math.min(window.devicePixelRatio, 2)
   );
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const delta = Math.min(clock.getDelta(), 0.05);
+
+  if (mixer) {
+    mixer.update(delta);
+  }
+
+  updateCharacterMovement(delta);
+
+  controls.update();
+  renderer.render(scene, camera);
 }
 
-
-/* ========================================
-   PASSWORD SHOW / HIDE
-======================================== */
-
-passwordToggle.addEventListener(
-  "click",
-  function () {
-    const passwordIsHidden =
-      passwordInput.type === "password";
-
-    passwordInput.type =
-      passwordIsHidden
-        ? "text"
-        : "password";
-
-    passwordToggle.textContent =
-      passwordIsHidden
-        ? "🙈"
-        : "👁";
-
-    passwordToggle.setAttribute(
-      "aria-label",
-      passwordIsHidden
-        ? "Hide password"
-        : "Show password"
-    );
-  }
-);
-
-
-/* ========================================
-   VALIDATION
-======================================== */
-
-function validateEmail(email) {
-  const emailPattern =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  return emailPattern.test(email);
-}
-
-
-function clearErrors() {
-  emailError.textContent = "";
-  passwordError.textContent = "";
-
-  emailInput
-    .closest(".input-box")
-    .classList.remove("error");
-
-  passwordInput
-    .closest(".input-box")
-    .classList.remove("error");
-}
-
-
-function showInputError(
-  input,
-  errorElement,
-  message
-) {
-  errorElement.textContent = message;
-
-  input
-    .closest(".input-box")
-    .classList.add("error");
-}
-
-
-emailInput.addEventListener(
-  "input",
-  function () {
-    emailError.textContent = "";
-
-    emailInput
-      .closest(".input-box")
-      .classList.remove("error");
-  }
-);
-
-
-passwordInput.addEventListener(
-  "input",
-  function () {
-    passwordError.textContent = "";
-
-    passwordInput
-      .closest(".input-box")
-      .classList.remove("error");
-  }
-);
-
-
-/* ========================================
-   LOGIN SUBMIT
-======================================== */
-
-loginForm.addEventListener(
-  "submit",
-  async function (event) {
-    event.preventDefault();
-
-    clearErrors();
-
-    const email =
-      emailInput.value.trim();
-
-    const password =
-      passwordInput.value.trim();
-
-    let formIsValid = true;
-
-    if (!email) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Please enter your email address."
-      );
-
-      formIsValid = false;
-    } else if (!validateEmail(email)) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Please enter a valid email address."
-      );
-
-      formIsValid = false;
-    }
-
-    if (!password) {
-      showInputError(
-        passwordInput,
-        passwordError,
-        "Please enter your password."
-      );
-
-      formIsValid = false;
-    } else if (password.length < 6) {
-      showInputError(
-        passwordInput,
-        passwordError,
-        "Password must contain at least 6 characters."
-      );
-
-      formIsValid = false;
-    }
-
-    if (!formIsValid) {
-      playErrorAnimation();
-
-      showToast(
-        "Please correct the highlighted fields.",
-        "error"
-      );
-
-      return;
-    }
-
-    setLoginLoading(true);
-
-    try {
-      /*
-        ADD YOUR FIREBASE LOGIN CODE HERE.
-
-        Example:
-
-        await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-      */
-
-      await simulateLogin();
-
-      playSuccessAnimation();
-
-      showToast(
-        "Login successful. Welcome back!",
-        "success"
-      );
-
-      /*
-        Redirect after successful login:
-
-        setTimeout(() => {
-          window.location.href = "home.html";
-        }, 1200);
-      */
-    } catch (error) {
-      console.error(error);
-
-      playErrorAnimation();
-
-      showToast(
-        error.message ||
-        "Login failed. Please try again.",
-        "error"
-      );
-    } finally {
-      setLoginLoading(false);
-    }
-  }
-);
-
-
-function simulateLogin() {
-  return new Promise(resolve => {
-    setTimeout(resolve, 1200);
-  });
-}
-
-
-function setLoginLoading(isLoading) {
-  loginButton.classList.toggle(
-    "loading",
-    isLoading
-  );
-
-  loginButton.disabled = isLoading;
-}
-
-
-/* ========================================
-   OTHER BUTTONS
-======================================== */
-
-googleButton.addEventListener(
-  "click",
-  function () {
-    /*
-      ADD YOUR FIREBASE GOOGLE LOGIN CODE HERE.
-    */
-
-    showToast(
-      "Connect your Google Sign-In code here.",
-      "success"
-    );
-  }
-);
-
-
-forgotPasswordButton.addEventListener(
-  "click",
-  function () {
-    const email =
-      emailInput.value.trim();
-
-    if (!email) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Enter your email to reset the password."
-      );
-
-      emailInput.focus();
-
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      showInputError(
-        emailInput,
-        emailError,
-        "Enter a valid email address."
-      );
-
-      emailInput.focus();
-
-      return;
-    }
-
-    /*
-      ADD FIREBASE PASSWORD RESET CODE HERE.
-
-      await sendPasswordResetEmail(auth, email);
-    */
-
-    showToast(
-      "Password reset link will be sent to your email.",
-      "success"
-    );
-  }
-);
-
-
-signupButton.addEventListener(
-  "click",
-  function () {
-    /*
-      Replace with your registration page.
-    */
-
-    window.location.href = "signup.html";
-  }
-);
-
-
-/* ========================================
-   TOAST MESSAGE
-======================================== */
-
-let toastTimeout;
-
-function showToast(message, type) {
-  clearTimeout(toastTimeout);
-
-  toastMessage.textContent = message;
-
-  toast.classList.remove(
-    "error",
-    "success"
-  );
-
-  toast.classList.add(type);
-
-  toastIcon.textContent =
-    type === "error" ? "!" : "✓";
-
-  toast.classList.add("show");
-
-  toastTimeout = setTimeout(() => {
-    toast.classList.remove("show");
-  }, 3500);
-}
+loadCharacter();
+animate();

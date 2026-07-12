@@ -1,260 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  >
+  />
 
-  <title>3D Character Login</title>
+  <title>3D Animated Character</title>
 
-  <link rel="stylesheet" href="style.css">
-</head>
+  <link rel="stylesheet" href="style.css" />
 
-<body>
-
-  <div class="background-effect"></div>
-
-  <main class="login-page">
-
-    <!-- 3D MODEL SECTION -->
-    <section class="model-section">
-
-      <div class="model-title">
-        <p>WELCOME BACK</p>
-        <h1>Login to continue</h1>
-        <span>
-          Enter your account details and continue.
-        </span>
-      </div>
-
-      <div id="model-container">
-
-        <div id="model-loader">
-          Loading character...
-        </div>
-
-        <canvas id="character-canvas"></canvas>
-
-      </div>
-
-      <div class="platform-shadow"></div>
-
-    </section>
-
-
-    <!-- LOGIN FORM SECTION -->
-    <section class="form-section">
-
-      <div class="login-card">
-
-        <div class="mobile-logo">
-          <span>3D</span> Login
-        </div>
-
-        <div class="form-heading">
-          <p>WELCOME BACK</p>
-          <h2>Sign in to your account</h2>
-          <span>
-            Please enter your email and password.
-          </span>
-        </div>
-
-        <form id="login-form" novalidate>
-
-          <!-- EMAIL -->
-          <div class="input-group">
-
-            <label for="email">
-              Email address
-            </label>
-
-            <div class="input-box">
-
-              <span class="input-icon">
-                ✉
-              </span>
-
-              <input
-                type="email"
-                id="email"
-                placeholder="Enter your email"
-                autocomplete="email"
-              >
-
-            </div>
-
-            <small
-              class="error-message"
-              id="email-error"
-            ></small>
-
-          </div>
-
-
-          <!-- PASSWORD -->
-          <div class="input-group">
-
-            <label for="password">
-              Password
-            </label>
-
-            <div class="input-box">
-
-              <span class="input-icon">
-                🔒
-              </span>
-
-              <input
-                type="password"
-                id="password"
-                placeholder="Enter your password"
-                autocomplete="current-password"
-              >
-
-              <button
-                type="button"
-                id="password-toggle"
-                class="password-toggle"
-                aria-label="Show password"
-              >
-                👁
-              </button>
-
-            </div>
-
-            <small
-              class="error-message"
-              id="password-error"
-            ></small>
-
-          </div>
-
-
-          <div class="form-options">
-
-            <label class="remember-option">
-
-              <input
-                type="checkbox"
-                id="remember-me"
-              >
-
-              <span class="custom-checkbox"></span>
-
-              Remember me
-
-            </label>
-
-            <button
-              type="button"
-              class="forgot-password"
-              id="forgot-password"
-            >
-              Forgot password?
-            </button>
-
-          </div>
-
-
-          <button
-            type="submit"
-            id="login-button"
-            class="login-button"
-          >
-            <span class="button-text">
-              Sign In
-            </span>
-
-            <span class="button-loader"></span>
-          </button>
-
-
-          <div class="divider">
-            <span></span>
-            <p>or continue with</p>
-            <span></span>
-          </div>
-
-
-          <button
-            type="button"
-            id="google-button"
-            class="google-button"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                fill="#4285F4"
-                d="M21.35 12.23c0-.71-.06-1.4-.18-2.07H12v3.91h5.24a4.48 4.48 0 0 1-1.94 2.94v2.54h3.14c1.84-1.69 2.91-4.18 2.91-7.32z"
-              />
-
-              <path
-                fill="#34A853"
-                d="M12 21.75c2.62 0 4.82-.87 6.43-2.36l-3.14-2.54c-.87.58-1.98.93-3.29.93-2.53 0-4.67-1.71-5.44-4.01H3.32v2.62A9.72 9.72 0 0 0 12 21.75z"
-              />
-
-              <path
-                fill="#FBBC05"
-                d="M6.56 13.77A5.85 5.85 0 0 1 6.25 12c0-.61.11-1.21.31-1.77V7.61H3.32A9.74 9.74 0 0 0 2.25 12c0 1.57.38 3.05 1.07 4.39l3.24-2.62z"
-              />
-
-              <path
-                fill="#EA4335"
-                d="M12 6.22c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.82 3.31 14.62 2.25 12 2.25a9.72 9.72 0 0 0-8.68 5.36l3.24 2.62C7.33 7.93 9.47 6.22 12 6.22z"
-              />
-            </svg>
-
-            Continue with Google
-          </button>
-
-
-          <p class="signup-text">
-            Don't have an account?
-
-            <button
-              type="button"
-              id="signup-button"
-            >
-              Create account
-            </button>
-          </p>
-
-        </form>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <!-- TOAST -->
-  <div id="toast" class="toast">
-    <span id="toast-icon">✓</span>
-    <p id="toast-message"></p>
-  </div>
-
-
-  <script
-    type="importmap"
-  >
+  <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.166.1/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.166.1/examples/jsm/"
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
       }
     }
   </script>
+</head>
 
-  <script
-    type="module"
-    src="script.js"
-  ></script>
+<body>
+  <div id="loadingScreen">
+    <div class="loader"></div>
+    <p id="loadingText">Loading character...</p>
+  </div>
 
+  <div id="gameContainer"></div>
+
+  <div class="instructions">
+    <h2>Character Controls</h2>
+    <p><strong>W / ↑</strong> Move forward</p>
+    <p><strong>S / ↓</strong> Move backward</p>
+    <p><strong>A / ←</strong> Turn left</p>
+    <p><strong>D / →</strong> Turn right</p>
+  </div>
+
+  <div class="animation-buttons">
+    <button data-animation="idle">Idle</button>
+    <button data-animation="talking">Talking</button>
+    <button data-animation="pointing">Pointing</button>
+    <button data-animation="waving">Waving</button>
+  </div>
+
+  <script type="module" src="script.js"></script>
 </body>
 </html>
