@@ -236,7 +236,7 @@ async function loadCharacter() {
     "Loading character model...";
 
   gltfLoader.load(
-    "./models/character_optimized.glb",
+    "./models/character_optimized.fbx",
 
     async (gltf) => {
       character = gltf.scene;
@@ -315,7 +315,7 @@ mixer = new THREE.AnimationMixer(character);
       );
 
       loadingText.textContent =
-        "Failed to load character_optimized.glb";
+        "Failed to load character_optimized.fbx";
     }
   );
 }
