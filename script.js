@@ -554,7 +554,7 @@ function loadCharacter() {
         /*
          * Keep the imported FBX orientation unchanged.
          */
-        character.rotation.set(0, 0, 0);
+        character.rotation.set(0, Math.PI, 0);
 
         prepareCharacter(character);
 
