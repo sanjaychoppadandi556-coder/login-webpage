@@ -31,7 +31,9 @@ const renderer = new THREE.WebGLRenderer({
 });
 
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(
+  Math.min(window.devicePixelRatio, 2)
+);
 
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -132,16 +134,17 @@ const loopingAnimations = new Set([
   "talking"
 ]);
 
-async function loadFBXAnimation(name, path) {
+function loadFBXAnimation(name, path) {
   return new Promise((resolve, reject) => {
     fbxLoader.load(
       path,
+
       (fbx) => {
         const clip = fbx.animations[0];
 
         if (!clip) {
           reject(
-            new Error(`No animation clip found in ${path}`)
+            new Error(`No animation found in ${path}`)
           );
           return;
         }
@@ -151,18 +154,30 @@ async function loadFBXAnimation(name, path) {
         const action = mixer.clipAction(clip);
 
         if (loopingAnimations.has(name)) {
-          action.setLoop(THREE.LoopRepeat, Infinity);
+          action.setLoop(
+            THREE.LoopRepeat,
+            Infinity
+          );
+
           action.clampWhenFinished = false;
         } else {
-          action.setLoop(THREE.LoopOnce, 1);
+          action.setLoop(
+            THREE.LoopOnce,
+            1
+          );
+
           action.clampWhenFinished = true;
         }
 
         actions[name] = action;
         resolve();
       },
+
       undefined,
-      reject
+
+      (error) => {
+        reject(error);
+      }
     );
   });
 }
@@ -173,32 +188,30 @@ function prepareCharacter(model) {
 
     object.castShadow = true;
     object.receiveShadow = true;
-
     object.frustumCulled = false;
 
-    if (object.material) {
-      const materials = Array.isArray(object.material)
-        ? object.material
-        : [object.material];
+    if (!object.material) return;
 
-      materials.forEach((material) => {
-        if (material.map) {
-          material.map.colorSpace = THREE.SRGBColorSpace;
-        }
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
 
-        material.needsUpdate = true;
-      });
-    }
+    materials.forEach((material) => {
+      if (material.map) {
+        material.map.colorSpace =
+          THREE.SRGBColorSpace;
+      }
+
+      material.needsUpdate = true;
+    });
   });
 }
 
 function fitCharacterToScene(model) {
   const box = new THREE.Box3().setFromObject(model);
   const size = new THREE.Vector3();
-  const center = new THREE.Vector3();
 
   box.getSize(size);
-  box.getCenter(center);
 
   const desiredHeight = 2.8;
 
@@ -207,18 +220,20 @@ function fitCharacterToScene(model) {
     model.scale.setScalar(scale);
   }
 
-  const scaledBox = new THREE.Box3().setFromObject(model);
-  const scaledCenter = new THREE.Vector3();
+  const scaledBox =
+    new THREE.Box3().setFromObject(model);
 
-  scaledBox.getCenter(scaledCenter);
+  const center = new THREE.Vector3();
+  scaledBox.getCenter(center);
 
-  model.position.x -= scaledCenter.x;
-  model.position.z -= scaledCenter.z;
+  model.position.x -= center.x;
+  model.position.z -= center.z;
   model.position.y -= scaledBox.min.y;
 }
 
 async function loadCharacter() {
-  loadingText.textContent = "Loading character model...";
+  loadingText.textContent =
+    "Loading character model...";
 
   gltfLoader.load(
     "./models/character_optimized.glb",
@@ -226,22 +241,37 @@ async function loadCharacter() {
     async (gltf) => {
       character = gltf.scene;
 
-      prepareCharacter(character);
-      fitCharacterToScene(character);
+      /*
+       * Fixes the imported model lying on the ground.
+       * If your model becomes upside down, change
+       * -Math.PI / 2 to Math.PI / 2.
+       */
+      character = gltf.scene;
 
-      scene.add(character);
+// Keep the model upright
+character.rotation.set(0, 0, 0);
 
-      mixer = new THREE.AnimationMixer(character);
+prepareCharacter(character);
+fitCharacterToScene(character);
+
+// Slightly lift the feet above the ground
+character.position.y += 0.02;
+
+scene.add(character);
+
+mixer = new THREE.AnimationMixer(character);
 
       try {
         const animationEntries =
           Object.entries(animationFiles);
 
-        for (let index = 0;
+        for (
+          let index = 0;
           index < animationEntries.length;
-          index += 1) {
-
-          const [name, path] = animationEntries[index];
+          index += 1
+        ) {
+          const [name, path] =
+            animationEntries[index];
 
           loadingText.textContent =
             `Loading ${name} animation...`;
@@ -294,7 +324,9 @@ function playAnimation(name) {
   const nextAction = actions[name];
 
   if (!nextAction) {
-    console.warn(`Animation "${name}" is not loaded.`);
+    console.warn(
+      `Animation "${name}" is not loaded.`
+    );
     return;
   }
 
@@ -339,11 +371,13 @@ function updateCharacterMovement(delta) {
     keys.KeyD || keys.ArrowRight;
 
   if (turningLeft) {
-    character.rotation.y += rotationSpeed * delta;
+    character.rotation.y +=
+      rotationSpeed * delta;
   }
 
   if (turningRight) {
-    character.rotation.y -= rotationSpeed * delta;
+    character.rotation.y -=
+      rotationSpeed * delta;
   }
 
   let movementDirection = 0;
@@ -363,7 +397,11 @@ function updateCharacterMovement(delta) {
       movementDirection
     );
 
-    direction.applyQuaternion(character.quaternion);
+    direction.applyQuaternion(
+      character.quaternion
+    );
+
+    direction.y = 0;
     direction.normalize();
 
     character.position.addScaledVector(
@@ -378,58 +416,79 @@ function updateCharacterMovement(delta) {
     playAnimation("idle");
   }
 
+  const targetPosition = new THREE.Vector3(
+    character.position.x,
+    character.position.y + 1.4,
+    character.position.z
+  );
+
   controls.target.lerp(
-    new THREE.Vector3(
-      character.position.x,
-      character.position.y + 1.4,
-      character.position.z
-    ),
+    targetPosition,
     0.08
   );
 }
 
-window.addEventListener("keydown", (event) => {
-  keys[event.code] = true;
+window.addEventListener(
+  "keydown",
+  (event) => {
+    keys[event.code] = true;
 
-  if (
-    event.code.startsWith("Arrow")
-  ) {
-    event.preventDefault();
+    if (event.code.startsWith("Arrow")) {
+      event.preventDefault();
+    }
   }
-});
+);
 
-window.addEventListener("keyup", (event) => {
-  keys[event.code] = false;
-});
+window.addEventListener(
+  "keyup",
+  (event) => {
+    keys[event.code] = false;
+  }
+);
 
 document
   .querySelectorAll("[data-animation]")
   .forEach((button) => {
-    button.addEventListener("click", () => {
-      playAnimation(button.dataset.animation);
-    });
+    button.addEventListener(
+      "click",
+      () => {
+        playAnimation(
+          button.dataset.animation
+        );
+      }
+    );
   });
 
-window.addEventListener("resize", () => {
-  camera.aspect =
-    window.innerWidth / window.innerHeight;
+window.addEventListener(
+  "resize",
+  () => {
+    camera.aspect =
+      window.innerWidth /
+      window.innerHeight;
 
-  camera.updateProjectionMatrix();
+    camera.updateProjectionMatrix();
 
-  renderer.setSize(
-    window.innerWidth,
-    window.innerHeight
-  );
+    renderer.setSize(
+      window.innerWidth,
+      window.innerHeight
+    );
 
-  renderer.setPixelRatio(
-    Math.min(window.devicePixelRatio, 2)
-  );
-});
+    renderer.setPixelRatio(
+      Math.min(
+        window.devicePixelRatio,
+        2
+      )
+    );
+  }
+);
 
 function animate() {
   requestAnimationFrame(animate);
 
-  const delta = Math.min(clock.getDelta(), 0.05);
+  const delta = Math.min(
+    clock.getDelta(),
+    0.05
+  );
 
   if (mixer) {
     mixer.update(delta);
