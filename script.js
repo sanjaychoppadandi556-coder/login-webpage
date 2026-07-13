@@ -834,36 +834,18 @@ function updateCharacterMovement(delta) {
   }
 
 
- /* ==========================================
-   CAMERA FOLLOW
-========================================== */
+  const targetPosition =
+    new THREE.Vector3(
+      character.position.x,
+      character.position.y + 1.4,
+      character.position.z
+    );
 
-const targetPosition = new THREE.Vector3(
-  character.position.x,
-  character.position.y + 1.4,
-  character.position.z
-);
-
-// Move the camera target smoothly
-controls.target.lerp(targetPosition, 0.15);
-
-// Keep the same camera offset while following
-const cameraOffset = new THREE.Vector3(0, 3.5, 7);
-
-// Rotate the offset with the character so the camera stays behind
-cameraOffset.applyAxisAngle(
-  new THREE.Vector3(0, 1, 0),
-  character.rotation.y
-);
-
-const desiredCameraPosition = new THREE.Vector3(
-  character.position.x,
-  character.position.y,
-  character.position.z
-).add(cameraOffset);
-
-// Smooth camera movement
-camera.position.lerp(desiredCameraPosition, 0.15);
+  controls.target.lerp(
+    targetPosition,
+    0.08
+  );
+}
 
 
 /* =====================================================
