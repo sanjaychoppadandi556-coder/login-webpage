@@ -22,7 +22,7 @@ const loadingText =
 
 
 /* =====================================================
-   THREE.JS SCENE
+   SCENE
 ===================================================== */
 
 const scene = new THREE.Scene();
@@ -42,12 +42,14 @@ scene.fog =
    CAMERA
 ===================================================== */
 
-const camera = new THREE.PerspectiveCamera(
-  55,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  300
-);
+const camera =
+  new THREE.PerspectiveCamera(
+    55,
+    window.innerWidth /
+      window.innerHeight,
+    0.1,
+    300
+  );
 
 camera.position.set(
   0,
@@ -60,9 +62,10 @@ camera.position.set(
    RENDERER
 ===================================================== */
 
-const renderer = new THREE.WebGLRenderer({
-  antialias: true
-});
+const renderer =
+  new THREE.WebGLRenderer({
+    antialias: true
+  });
 
 renderer.setSize(
   window.innerWidth,
@@ -98,10 +101,11 @@ container.appendChild(
    CAMERA CONTROLS
 ===================================================== */
 
-const controls = new OrbitControls(
-  camera,
-  renderer.domElement
-);
+const controls =
+  new OrbitControls(
+    camera,
+    renderer.domElement
+  );
 
 controls.enableDamping = true;
 controls.enablePan = false;
@@ -120,7 +124,7 @@ controls.target.set(
 
 
 /* =====================================================
-   LIGHTS
+   LIGHTING
 ===================================================== */
 
 const hemisphereLight =
@@ -154,30 +158,37 @@ directionalLight.shadow.mapSize.set(
   2048
 );
 
-directionalLight.shadow.camera.left = -35;
-directionalLight.shadow.camera.right = 35;
-directionalLight.shadow.camera.top = 35;
-directionalLight.shadow.camera.bottom = -35;
+directionalLight.shadow.camera.left =
+  -35;
+
+directionalLight.shadow.camera.right =
+  35;
+
+directionalLight.shadow.camera.top =
+  35;
+
+directionalLight.shadow.camera.bottom =
+  -35;
 
 scene.add(
   directionalLight
 );
 
 
-const cityFillLight =
+const fillLight =
   new THREE.DirectionalLight(
     0x9ecbff,
-    1.2
+    1.1
   );
 
-cityFillLight.position.set(
+fillLight.position.set(
   -12,
   10,
   -8
 );
 
 scene.add(
-  cityFillLight
+  fillLight
 );
 
 
@@ -197,26 +208,22 @@ scene.add(
    ROAD
 ===================================================== */
 
-const roadMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x25292e,
-    roughness: 0.82,
-    metalness: 0.08
-  });
-
 const road =
   new THREE.Mesh(
     new THREE.PlaneGeometry(
       18,
       220
     ),
-    roadMaterial
+
+    new THREE.MeshStandardMaterial({
+      color: 0x25292e,
+      roughness: 0.82,
+      metalness: 0.08
+    })
   );
 
 road.rotation.x =
   -Math.PI / 2;
-
-road.position.y = 0;
 
 road.receiveShadow = true;
 
@@ -226,172 +233,12 @@ cityGroup.add(
 
 
 /* =====================================================
-   ROAD SHOULDERS
-===================================================== */
-
-const shoulderMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x3b3f43,
-    roughness: 0.9
-  });
-
-function createRoadShoulder(x) {
-  const shoulder =
-    new THREE.Mesh(
-      new THREE.PlaneGeometry(
-        2,
-        220
-      ),
-      shoulderMaterial
-    );
-
-  shoulder.rotation.x =
-    -Math.PI / 2;
-
-  shoulder.position.set(
-    x,
-    0.005,
-    0
-  );
-
-  shoulder.receiveShadow = true;
-
-  cityGroup.add(
-    shoulder
-  );
-}
-
-createRoadShoulder(-10);
-createRoadShoulder(10);
-
-
-/* =====================================================
-   ROAD CENTER LINES
-===================================================== */
-
-const yellowLineMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0xf2cc35,
-    roughness: 0.75
-  });
-
-function createRoadCenterLine(z) {
-  const line =
-    new THREE.Mesh(
-      new THREE.PlaneGeometry(
-        0.16,
-        3.2
-      ),
-      yellowLineMaterial
-    );
-
-  line.rotation.x =
-    -Math.PI / 2;
-
-  line.position.set(
-    0,
-    0.015,
-    z
-  );
-
-  cityGroup.add(
-    line
-  );
-}
-
-for (
-  let z = -105;
-  z <= 105;
-  z += 6.5
-) {
-  createRoadCenterLine(z);
-}
-
-
-/* =====================================================
-   SIDE ROAD LINES
-===================================================== */
-
-const whiteLineMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0xffffff,
-    roughness: 0.8
-  });
-
-function createSideRoadLine(x) {
-  const line =
-    new THREE.Mesh(
-      new THREE.PlaneGeometry(
-        0.12,
-        220
-      ),
-      whiteLineMaterial
-    );
-
-  line.rotation.x =
-    -Math.PI / 2;
-
-  line.position.set(
-    x,
-    0.012,
-    0
-  );
-
-  cityGroup.add(
-    line
-  );
-}
-
-createSideRoadLine(-7.6);
-createSideRoadLine(7.6);
-
-
-/* =====================================================
-   SIDEWALKS
-===================================================== */
-
-const sidewalkMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x787d82,
-    roughness: 0.95
-  });
-
-function createSidewalk(x) {
-  const sidewalk =
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        6,
-        0.28,
-        220
-      ),
-      sidewalkMaterial
-    );
-
-  sidewalk.position.set(
-    x,
-    0.12,
-    0
-  );
-
-  sidewalk.receiveShadow = true;
-  sidewalk.castShadow = true;
-
-  cityGroup.add(
-    sidewalk
-  );
-}
-
-createSidewalk(-12);
-createSidewalk(12);
-
-
-/* =====================================================
-   OUTER CITY GROUND
+   OUTER GROUND
 ===================================================== */
 
 const outerGroundMaterial =
   new THREE.MeshStandardMaterial({
-    color: 0x4c555d,
+    color: 0x4d565d,
     roughness: 1
   });
 
@@ -423,6 +270,118 @@ function createOuterGround(x) {
 
 createOuterGround(-55);
 createOuterGround(55);
+
+
+/* =====================================================
+   ROAD MARKINGS
+===================================================== */
+
+const yellowLineMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xf2cc35,
+    roughness: 0.75
+  });
+
+for (
+  let z = -105;
+  z <= 105;
+  z += 6.5
+) {
+  const line =
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(
+        0.16,
+        3.2
+      ),
+      yellowLineMaterial
+    );
+
+  line.rotation.x =
+    -Math.PI / 2;
+
+  line.position.set(
+    0,
+    0.015,
+    z
+  );
+
+  cityGroup.add(
+    line
+  );
+}
+
+
+const whiteLineMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.8
+  });
+
+function createRoadEdgeLine(x) {
+  const line =
+    new THREE.Mesh(
+      new THREE.PlaneGeometry(
+        0.12,
+        220
+      ),
+      whiteLineMaterial
+    );
+
+  line.rotation.x =
+    -Math.PI / 2;
+
+  line.position.set(
+    x,
+    0.012,
+    0
+  );
+
+  cityGroup.add(
+    line
+  );
+}
+
+createRoadEdgeLine(-7.6);
+createRoadEdgeLine(7.6);
+
+
+/* =====================================================
+   SIDEWALKS
+===================================================== */
+
+const sidewalkMaterial =
+  new THREE.MeshStandardMaterial({
+    color: 0x787d82,
+    roughness: 0.95
+  });
+
+function createSidewalk(x) {
+  const sidewalk =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        6,
+        0.28,
+        220
+      ),
+      sidewalkMaterial
+    );
+
+  sidewalk.position.set(
+    x,
+    0.12,
+    0
+  );
+
+  sidewalk.castShadow = true;
+  sidewalk.receiveShadow = true;
+
+  cityGroup.add(
+    sidewalk
+  );
+}
+
+createSidewalk(-12);
+createSidewalk(12);
 
 
 /* =====================================================
@@ -470,7 +429,7 @@ createCrosswalk(35);
 
 
 /* =====================================================
-   BUILDING MATERIALS
+   BUILDINGS
 ===================================================== */
 
 const buildingColors = [
@@ -479,8 +438,7 @@ const buildingColors = [
   0x606b74,
   0x2f3740,
   0x786f68,
-  0x424c58,
-  0x59636e
+  0x424c58
 ];
 
 const windowMaterial =
@@ -492,128 +450,6 @@ const windowMaterial =
     metalness: 0.35
   });
 
-
-/* =====================================================
-   BUILDING WINDOWS
-===================================================== */
-
-function createBuildingWindows(
-  building,
-  width,
-  height,
-  depth,
-  faces = ["front"]
-) {
-  const floors =
-    Math.max(
-      2,
-      Math.floor(height / 2.4)
-    );
-
-  const windowsPerFloor =
-    Math.max(
-      2,
-      Math.floor(width / 1.8)
-    );
-
-  const windowWidth = 0.68;
-  const windowHeight = 0.8;
-
-  if (faces.includes("front")) {
-    for (
-      let floor = 1;
-      floor < floors;
-      floor += 1
-    ) {
-      for (
-        let column = 0;
-        column < windowsPerFloor;
-        column += 1
-      ) {
-        const windowMesh =
-          new THREE.Mesh(
-            new THREE.PlaneGeometry(
-              windowWidth,
-              windowHeight
-            ),
-            windowMaterial
-          );
-
-        const spacing =
-          width / windowsPerFloor;
-
-        windowMesh.position.set(
-          building.position.x -
-            width / 2 +
-            spacing / 2 +
-            column * spacing,
-
-          floor * 2.1,
-
-          building.position.z -
-            depth / 2 -
-            0.011
-        );
-
-        windowMesh.rotation.y =
-          Math.PI;
-
-        cityGroup.add(
-          windowMesh
-        );
-      }
-    }
-  }
-
-  if (faces.includes("back")) {
-    for (
-      let floor = 1;
-      floor < floors;
-      floor += 1
-    ) {
-      for (
-        let column = 0;
-        column < windowsPerFloor;
-        column += 1
-      ) {
-        const windowMesh =
-          new THREE.Mesh(
-            new THREE.PlaneGeometry(
-              windowWidth,
-              windowHeight
-            ),
-            windowMaterial
-          );
-
-        const spacing =
-          width / windowsPerFloor;
-
-        windowMesh.position.set(
-          building.position.x -
-            width / 2 +
-            spacing / 2 +
-            column * spacing,
-
-          floor * 2.1,
-
-          building.position.z +
-            depth / 2 +
-            0.011
-        );
-
-        cityGroup.add(
-          windowMesh
-        );
-      }
-    }
-  }
-}
-
-
-/* =====================================================
-   CREATE BUILDING
-===================================================== */
-
 function createBuilding(
   x,
   z,
@@ -621,17 +457,15 @@ function createBuilding(
   height,
   depth
 ) {
-  const color =
-    buildingColors[
-      Math.floor(
-        Math.random() *
-        buildingColors.length
-      )
-    ];
-
-  const material =
+  const buildingMaterial =
     new THREE.MeshStandardMaterial({
-      color,
+      color:
+        buildingColors[
+          Math.floor(
+            Math.random() *
+            buildingColors.length
+          )
+        ],
       roughness: 0.78,
       metalness: 0.08
     });
@@ -643,7 +477,7 @@ function createBuilding(
         height,
         depth
       ),
-      material
+      buildingMaterial
     );
 
   building.position.set(
@@ -663,106 +497,110 @@ function createBuilding(
     building,
     width,
     height,
-    depth,
-    ["front", "back"]
+    depth
   );
-
-  return building;
 }
 
 
-/* =====================================================
-   BUILDING ROOFTOPS
-===================================================== */
-
-function createRoofEquipment(
-  x,
-  y,
-  z
+function createBuildingWindows(
+  building,
+  width,
+  height,
+  depth
 ) {
-  const material =
-    new THREE.MeshStandardMaterial({
-      color: 0x30353a,
-      roughness: 0.75,
-      metalness: 0.3
-    });
-
-  const unit =
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        1.8,
-        0.8,
-        1.4
-      ),
-      material
+  const floors =
+    Math.max(
+      2,
+      Math.floor(height / 2.5)
     );
 
-  unit.position.set(
-    x,
-    y,
-    z
-  );
+  const columns =
+    Math.max(
+      2,
+      Math.floor(width / 1.8)
+    );
 
-  unit.castShadow = true;
+  const spacing =
+    width / columns;
 
-  cityGroup.add(
-    unit
-  );
+  for (
+    let floor = 1;
+    floor < floors;
+    floor += 1
+  ) {
+    for (
+      let column = 0;
+      column < columns;
+      column += 1
+    ) {
+      const frontWindow =
+        new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            0.68,
+            0.8
+          ),
+          windowMaterial
+        );
+
+      frontWindow.position.set(
+        building.position.x -
+          width / 2 +
+          spacing / 2 +
+          column * spacing,
+
+        floor * 2.1,
+
+        building.position.z -
+          depth / 2 -
+          0.011
+      );
+
+      frontWindow.rotation.y =
+        Math.PI;
+
+      cityGroup.add(
+        frontWindow
+      );
+
+
+      const backWindow =
+        frontWindow.clone();
+
+      backWindow.position.z =
+        building.position.z +
+        depth / 2 +
+        0.011;
+
+      backWindow.rotation.y = 0;
+
+      cityGroup.add(
+        backWindow
+      );
+    }
+  }
 }
 
 
-/* =====================================================
-   GENERATE CITY BUILDINGS
-===================================================== */
-
 function generateBuildings() {
-  const spacing = 13;
-
   for (
     let z = -100;
     z <= 100;
-    z += spacing
+    z += 13
   ) {
-    const leftHeight =
-      10 + Math.random() * 24;
-
-    const rightHeight =
-      10 + Math.random() * 24;
-
-    const leftWidth =
-      8 + Math.random() * 4;
-
-    const rightWidth =
-      8 + Math.random() * 4;
-
-    const leftBuilding =
-      createBuilding(
-        -19,
-        z,
-        leftWidth,
-        leftHeight,
-        9
-      );
-
-    const rightBuilding =
-      createBuilding(
-        19,
-        z,
-        rightWidth,
-        rightHeight,
-        9
-      );
-
-    createRoofEquipment(
-      leftBuilding.position.x,
-      leftHeight + 0.8,
-      leftBuilding.position.z
+    createBuilding(
+      -19,
+      z,
+      8 + Math.random() * 4,
+      10 + Math.random() * 24,
+      9
     );
 
-    createRoofEquipment(
-      rightBuilding.position.x,
-      rightHeight + 0.8,
-      rightBuilding.position.z
+    createBuilding(
+      19,
+      z,
+      8 + Math.random() * 4,
+      10 + Math.random() * 24,
+      9
     );
   }
 }
@@ -780,13 +618,6 @@ function createTower(
   width,
   height
 ) {
-  const material =
-    new THREE.MeshStandardMaterial({
-      color: 0x596b7c,
-      roughness: 0.5,
-      metalness: 0.25
-    });
-
   const tower =
     new THREE.Mesh(
       new THREE.BoxGeometry(
@@ -794,7 +625,12 @@ function createTower(
         height,
         width
       ),
-      material
+
+      new THREE.MeshStandardMaterial({
+        color: 0x596b7c,
+        roughness: 0.5,
+        metalness: 0.25
+      })
     );
 
   tower.position.set(
@@ -860,6 +696,7 @@ function createStreetLight(
     pole
   );
 
+
   const arm =
     new THREE.Mesh(
       new THREE.BoxGeometry(
@@ -880,7 +717,8 @@ function createStreetLight(
     arm
   );
 
-  const lamp =
+
+  const bulb =
     new THREE.Mesh(
       new THREE.SphereGeometry(
         0.18,
@@ -890,14 +728,14 @@ function createStreetLight(
       lampBulbMaterial
     );
 
-  lamp.position.set(
+  bulb.position.set(
     x < 0 ? 0.78 : -0.78,
     4.53,
     0
   );
 
   lampGroup.add(
-    lamp
+    bulb
   );
 
   lampGroup.position.set(
@@ -916,15 +754,8 @@ for (
   z <= 90;
   z += 16
 ) {
-  createStreetLight(
-    -8.7,
-    z
-  );
-
-  createStreetLight(
-    8.7,
-    z
-  );
+  createStreetLight(-8.7, z);
+  createStreetLight(8.7, z);
 }
 
 
@@ -969,6 +800,7 @@ function createTree(
     trunk
   );
 
+
   const leaves =
     new THREE.Mesh(
       new THREE.SphereGeometry(
@@ -1009,178 +841,13 @@ for (
   z <= 90;
   z += 14
 ) {
-  createTree(
-    -11.2,
-    z + 4
-  );
-
-  createTree(
-    11.2,
-    z - 3
-  );
+  createTree(-11.2, z + 4);
+  createTree(11.2, z - 3);
 }
 
 
 /* =====================================================
-   BENCHES
-===================================================== */
-
-const benchMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x5a3823,
-    roughness: 0.85
-  });
-
-const benchMetalMaterial =
-  new THREE.MeshStandardMaterial({
-    color: 0x25282c,
-    roughness: 0.55,
-    metalness: 0.7
-  });
-
-function createBench(
-  x,
-  z,
-  rotationY
-) {
-  const benchGroup =
-    new THREE.Group();
-
-  const seat =
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        2,
-        0.18,
-        0.55
-      ),
-      benchMaterial
-    );
-
-  seat.position.y = 0.65;
-  seat.castShadow = true;
-
-  benchGroup.add(
-    seat
-  );
-
-  const back =
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        2,
-        0.7,
-        0.14
-      ),
-      benchMaterial
-    );
-
-  back.position.set(
-    0,
-    1,
-    0.22
-  );
-
-  back.castShadow = true;
-
-  benchGroup.add(
-    back
-  );
-
-  const legLeft =
-    new THREE.Mesh(
-      new THREE.BoxGeometry(
-        0.12,
-        0.65,
-        0.45
-      ),
-      benchMetalMaterial
-    );
-
-  legLeft.position.set(
-    -0.7,
-    0.32,
-    0
-  );
-
-  benchGroup.add(
-    legLeft
-  );
-
-  const legRight =
-    legLeft.clone();
-
-  legRight.position.x = 0.7;
-
-  benchGroup.add(
-    legRight
-  );
-
-  benchGroup.position.set(
-    x,
-    0.25,
-    z
-  );
-
-  benchGroup.rotation.y =
-    rotationY;
-
-  cityGroup.add(
-    benchGroup
-  );
-}
-
-createBench(-12, 8, Math.PI / 2);
-createBench(12, 22, -Math.PI / 2);
-createBench(-12, -35, Math.PI / 2);
-createBench(12, -52, -Math.PI / 2);
-
-
-/* =====================================================
-   TRASH BINS
-===================================================== */
-
-function createTrashBin(
-  x,
-  z
-) {
-  const material =
-    new THREE.MeshStandardMaterial({
-      color: 0x285d3a,
-      roughness: 0.75,
-      metalness: 0.25
-    });
-
-  const bin =
-    new THREE.Mesh(
-      new THREE.CylinderGeometry(
-        0.35,
-        0.4,
-        1,
-        14
-      ),
-      material
-    );
-
-  bin.position.set(
-    x,
-    0.75,
-    z
-  );
-
-  bin.castShadow = true;
-
-  cityGroup.add(
-    bin
-  );
-}
-
-createTrashBin(-10.8, 15);
-createTrashBin(10.8, -18);
-createTrashBin(-10.8, -50);
-createTrashBin(10.8, 55);
-
-
-/* =====================================================
-   PARKED CARS
+   SIMPLE PARKED CARS
 ===================================================== */
 
 function createSimpleCar(
@@ -1189,7 +856,7 @@ function createSimpleCar(
   color,
   rotationY
 ) {
-  const carGroup =
+  const car =
     new THREE.Group();
 
   const bodyMaterial =
@@ -1212,9 +879,10 @@ function createSimpleCar(
   body.position.y = 0.65;
   body.castShadow = true;
 
-  carGroup.add(
+  car.add(
     body
   );
+
 
   const roof =
     new THREE.Mesh(
@@ -1234,9 +902,10 @@ function createSimpleCar(
 
   roof.castShadow = true;
 
-  carGroup.add(
+  car.add(
     roof
   );
+
 
   const wheelMaterial =
     new THREE.MeshStandardMaterial({
@@ -1275,34 +944,461 @@ function createSimpleCar(
 
       wheel.castShadow = true;
 
-      carGroup.add(
+      car.add(
         wheel
       );
     }
   );
 
-  carGroup.position.set(
+  car.position.set(
     x,
     0.02,
     z
   );
 
-  carGroup.rotation.y =
+  car.rotation.y =
     rotationY;
 
   cityGroup.add(
-    carGroup
+    car
   );
 }
 
-createSimpleCar(-6.2, 28, 0x1e5aa8, 0);
-createSimpleCar(6.2, -28, 0x9b2525, Math.PI);
-createSimpleCar(-6.2, -65, 0x383838, 0);
-createSimpleCar(6.2, 68, 0xb0b0b0, Math.PI);
+createSimpleCar(
+  -6.2,
+  28,
+  0x1e5aa8,
+  0
+);
+
+createSimpleCar(
+  6.2,
+  -28,
+  0x9b2525,
+  Math.PI
+);
+
+createSimpleCar(
+  -6.2,
+  -65,
+  0x383838,
+  0
+);
+
+createSimpleCar(
+  6.2,
+  68,
+  0xb0b0b0,
+  Math.PI
+);
 
 
 /* =====================================================
-   LOADERS AND GLOBAL VARIABLES
+   WALKING PEDESTRIANS
+===================================================== */
+
+const pedestrians = [];
+
+const pedestrianColors = [
+  0x2f5fa7,
+  0x8b3f3f,
+  0x3f7a4a,
+  0x7d5a9e,
+  0xb06c2e,
+  0x444444,
+  0x168a8a
+];
+
+const pedestrianSkinColors = [
+  0xc98f65,
+  0xe0ad87,
+  0x9d6849,
+  0x7c4f37
+];
+
+
+function createPedestrian(
+  x,
+  z,
+  direction = 1,
+  speed = 1
+) {
+  const pedestrian =
+    new THREE.Group();
+
+  const skinMaterial =
+    new THREE.MeshStandardMaterial({
+      color:
+        pedestrianSkinColors[
+          Math.floor(
+            Math.random() *
+            pedestrianSkinColors.length
+          )
+        ],
+      roughness: 0.9
+    });
+
+  const shirtMaterial =
+    new THREE.MeshStandardMaterial({
+      color:
+        pedestrianColors[
+          Math.floor(
+            Math.random() *
+            pedestrianColors.length
+          )
+        ],
+      roughness: 0.85
+    });
+
+  const pantsMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x252a30,
+      roughness: 0.9
+    });
+
+  const shoeMaterial =
+    new THREE.MeshStandardMaterial({
+      color: 0x171717,
+      roughness: 0.95
+    });
+
+
+  const head =
+    new THREE.Mesh(
+      new THREE.SphereGeometry(
+        0.18,
+        12,
+        10
+      ),
+      skinMaterial
+    );
+
+  head.position.y = 1.72;
+  head.castShadow = true;
+
+  pedestrian.add(
+    head
+  );
+
+
+  const body =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.45,
+        0.7,
+        0.25
+      ),
+      shirtMaterial
+    );
+
+  body.position.y = 1.2;
+  body.castShadow = true;
+
+  pedestrian.add(
+    body
+  );
+
+
+  const leftArmPivot =
+    new THREE.Group();
+
+  leftArmPivot.position.set(
+    -0.3,
+    1.48,
+    0
+  );
+
+  const leftArm =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.12,
+        0.65,
+        0.12
+      ),
+      shirtMaterial
+    );
+
+  leftArm.position.y = -0.3;
+  leftArm.castShadow = true;
+
+  leftArmPivot.add(
+    leftArm
+  );
+
+  pedestrian.add(
+    leftArmPivot
+  );
+
+
+  const rightArmPivot =
+    new THREE.Group();
+
+  rightArmPivot.position.set(
+    0.3,
+    1.48,
+    0
+  );
+
+  const rightArm =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.12,
+        0.65,
+        0.12
+      ),
+      shirtMaterial
+    );
+
+  rightArm.position.y = -0.3;
+  rightArm.castShadow = true;
+
+  rightArmPivot.add(
+    rightArm
+  );
+
+  pedestrian.add(
+    rightArmPivot
+  );
+
+
+  const leftLegPivot =
+    new THREE.Group();
+
+  leftLegPivot.position.set(
+    -0.13,
+    0.85,
+    0
+  );
+
+  const leftLeg =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.15,
+        0.75,
+        0.16
+      ),
+      pantsMaterial
+    );
+
+  leftLeg.position.y = -0.36;
+  leftLeg.castShadow = true;
+
+  leftLegPivot.add(
+    leftLeg
+  );
+
+  const leftShoe =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.18,
+        0.12,
+        0.32
+      ),
+      shoeMaterial
+    );
+
+  leftShoe.position.set(
+    0,
+    -0.76,
+    0.08
+  );
+
+  leftLegPivot.add(
+    leftShoe
+  );
+
+  pedestrian.add(
+    leftLegPivot
+  );
+
+
+  const rightLegPivot =
+    new THREE.Group();
+
+  rightLegPivot.position.set(
+    0.13,
+    0.85,
+    0
+  );
+
+  const rightLeg =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.15,
+        0.75,
+        0.16
+      ),
+      pantsMaterial
+    );
+
+  rightLeg.position.y = -0.36;
+  rightLeg.castShadow = true;
+
+  rightLegPivot.add(
+    rightLeg
+  );
+
+  const rightShoe =
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        0.18,
+        0.12,
+        0.32
+      ),
+      shoeMaterial
+    );
+
+  rightShoe.position.set(
+    0,
+    -0.76,
+    0.08
+  );
+
+  rightLegPivot.add(
+    rightShoe
+  );
+
+  pedestrian.add(
+    rightLegPivot
+  );
+
+
+  pedestrian.position.set(
+    x,
+    0.28,
+    z
+  );
+
+  pedestrian.rotation.y =
+    direction > 0
+      ? 0
+      : Math.PI;
+
+  pedestrian.userData = {
+    direction,
+    speed,
+    walkTime:
+      Math.random() *
+      Math.PI *
+      2,
+    leftArmPivot,
+    rightArmPivot,
+    leftLegPivot,
+    rightLegPivot
+  };
+
+  cityGroup.add(
+    pedestrian
+  );
+
+  pedestrians.push(
+    pedestrian
+  );
+}
+
+
+createPedestrian(
+  -12,
+  -70,
+  1,
+  1.05
+);
+
+createPedestrian(
+  -12,
+  -10,
+  -1,
+  0.85
+);
+
+createPedestrian(
+  -11.5,
+  55,
+  -1,
+  1.1
+);
+
+createPedestrian(
+  12,
+  -45,
+  1,
+  0.9
+);
+
+createPedestrian(
+  12,
+  20,
+  -1,
+  1.15
+);
+
+createPedestrian(
+  11.5,
+  75,
+  -1,
+  0.95
+);
+
+
+function updatePedestrians(delta) {
+  pedestrians.forEach(
+    (pedestrian) => {
+      const data =
+        pedestrian.userData;
+
+      pedestrian.position.z +=
+        data.direction *
+        data.speed *
+        delta;
+
+      data.walkTime +=
+        delta * 7;
+
+      const swing =
+        Math.sin(
+          data.walkTime
+        ) * 0.55;
+
+      data.leftArmPivot.rotation.x =
+        swing;
+
+      data.rightArmPivot.rotation.x =
+        -swing;
+
+      data.leftLegPivot.rotation.x =
+        -swing;
+
+      data.rightLegPivot.rotation.x =
+        swing;
+
+      pedestrian.position.y =
+        0.28 +
+        Math.abs(
+          Math.sin(
+            data.walkTime
+          )
+        ) * 0.025;
+
+      if (
+        pedestrian.position.z > 102
+      ) {
+        pedestrian.position.z =
+          -102;
+      }
+
+      if (
+        pedestrian.position.z < -102
+      ) {
+        pedestrian.position.z =
+          102;
+      }
+    }
+  );
+}
+
+
+/* =====================================================
+   CHARACTER LOADERS AND VARIABLES
 ===================================================== */
 
 const fbxLoader =
@@ -1367,7 +1463,7 @@ const loopingAnimations =
 
 
 /* =====================================================
-   LOADING SCREEN HELPERS
+   LOADING SCREEN
 ===================================================== */
 
 function updateLoadingText(message) {
@@ -1377,6 +1473,7 @@ function updateLoadingText(message) {
   }
 }
 
+
 function hideLoadingScreen() {
   if (loadingScreen) {
     loadingScreen.style.display =
@@ -1384,8 +1481,11 @@ function hideLoadingScreen() {
   }
 }
 
+
 function showLoadingError(message) {
-  console.error(message);
+  console.error(
+    message
+  );
 
   updateLoadingText(
     message
@@ -1420,28 +1520,32 @@ function prepareCharacter(model) {
     }
 
     const materials =
-      Array.isArray(object.material)
+      Array.isArray(
+        object.material
+      )
         ? object.material
         : [object.material];
 
-    materials.forEach((material) => {
-      if (material.map) {
-        material.map.colorSpace =
-          THREE.SRGBColorSpace;
+    materials.forEach(
+      (material) => {
+        if (material.map) {
+          material.map.colorSpace =
+            THREE.SRGBColorSpace;
 
-        material.map.needsUpdate =
+          material.map.needsUpdate =
+            true;
+        }
+
+        material.needsUpdate =
           true;
       }
-
-      material.needsUpdate =
-        true;
-    });
+    );
   });
 }
 
 
 /* =====================================================
-   SCALE AND POSITION CHARACTER
+   CHARACTER SIZE AND POSITION
 ===================================================== */
 
 function fitCharacterToScene(model) {
@@ -1462,7 +1566,9 @@ function fitCharacterToScene(model) {
   const desiredHeight = 2.8;
 
   if (
-    Number.isFinite(originalSize.y) &&
+    Number.isFinite(
+      originalSize.y
+    ) &&
     originalSize.y > 0
   ) {
     const scale =
@@ -1488,35 +1594,42 @@ function fitCharacterToScene(model) {
     center
   );
 
-  model.position.x -= center.x;
-  model.position.z -= center.z;
-  model.position.y -= scaledBox.min.y;
+  model.position.x -=
+    center.x;
+
+  model.position.z -=
+    center.z;
+
+  model.position.y -=
+    scaledBox.min.y;
 
   model.updateMatrixWorld(true);
 }
 
 
 /* =====================================================
-   CLEAN ANIMATION CLIP
+   CLEAN ANIMATION
 ===================================================== */
 
 function cleanAnimationClip(clip) {
   clip.tracks =
-    clip.tracks.filter((track) => {
-      const trackName =
-        track.name.toLowerCase();
+    clip.tracks.filter(
+      (track) => {
+        const trackName =
+          track.name.toLowerCase();
 
-      return !trackName.endsWith(
-        ".scale"
-      );
-    });
+        return !trackName.endsWith(
+          ".scale"
+        );
+      }
+    );
 
   return clip;
 }
 
 
 /* =====================================================
-   LOAD ANIMATION
+   LOAD FBX ANIMATION
 ===================================================== */
 
 function loadFBXAnimation(
@@ -1531,7 +1644,8 @@ function loadFBXAnimation(
         (animationFBX) => {
           if (
             !animationFBX.animations ||
-            animationFBX.animations.length === 0
+            animationFBX.animations
+              .length === 0
           ) {
             reject(
               new Error(
@@ -1543,7 +1657,8 @@ function loadFBXAnimation(
           }
 
           let clip =
-            animationFBX.animations[0];
+            animationFBX
+              .animations[0];
 
           clip =
             cleanAnimationClip(
@@ -1594,7 +1709,7 @@ function loadFBXAnimation(
         (error) => {
           reject(
             new Error(
-              `Failed to load ${name} animation: ${
+              `Failed to load ${name}: ${
                 error?.message ||
                 "Unknown error"
               }`
@@ -1616,61 +1731,24 @@ function loadAnimationWithTimeout(
   path,
   timeout = 30000
 ) {
-  return new Promise(
-    (resolve, reject) => {
-      let completed = false;
+  return Promise.race([
+    loadFBXAnimation(
+      name,
+      path
+    ),
 
-      const timer =
+    new Promise(
+      (_, reject) => {
         setTimeout(() => {
-          if (completed) {
-            return;
-          }
-
-          completed = true;
-
           reject(
             new Error(
-              `${name} animation timed out after ${timeout}ms`
+              `${name} animation timed out`
             )
           );
         }, timeout);
-
-      loadFBXAnimation(
-        name,
-        path
-      )
-        .then((action) => {
-          if (completed) {
-            return;
-          }
-
-          completed = true;
-
-          clearTimeout(
-            timer
-          );
-
-          resolve(
-            action
-          );
-        })
-        .catch((error) => {
-          if (completed) {
-            return;
-          }
-
-          completed = true;
-
-          clearTimeout(
-            timer
-          );
-
-          reject(
-            error
-          );
-        });
-    }
-  );
+      }
+    )
+  ]);
 }
 
 
@@ -1686,15 +1764,10 @@ function loadCharacter() {
   const cacheBustedPath =
     `${characterFile}?v=${Date.now()}`;
 
-  console.log(
-    "Loading character:",
-    cacheBustedPath
-  );
-
   const characterTimeout =
     setTimeout(() => {
       showLoadingError(
-        "Character loading is taking too long. Check the file path and browser console."
+        "Character loading is taking too long."
       );
     }, 90000);
 
@@ -1707,11 +1780,6 @@ function loadCharacter() {
       );
 
       try {
-        console.log(
-          "Character FBX loaded successfully.",
-          fbx
-        );
-
         character = fbx;
 
         character.position.set(
@@ -1793,7 +1861,7 @@ function loadCharacter() {
         progress.lengthComputable &&
         progress.total > 0
       ) {
-        const percent =
+        const percentage =
           Math.round(
             (
               progress.loaded /
@@ -1802,7 +1870,7 @@ function loadCharacter() {
           );
 
         updateLoadingText(
-          `Loading character: ${percent}%`
+          `Loading character: ${percentage}%`
         );
       } else {
         const loadedMB =
@@ -1824,7 +1892,7 @@ function loadCharacter() {
       );
 
       console.error(
-        "Character FBX loading failed:",
+        "Character loading failed:",
         error
       );
 
@@ -1851,19 +1919,10 @@ async function loadAllAnimations() {
     of animationEntries
   ) {
     try {
-      console.log(
-        `Loading ${name} animation:`,
-        path
-      );
-
       await loadAnimationWithTimeout(
         name,
         path,
         30000
-      );
-
-      console.log(
-        `${name} animation loaded successfully.`
       );
 
       if (
@@ -1877,7 +1936,7 @@ async function loadAllAnimations() {
       }
     } catch (error) {
       console.error(
-        `Unable to load ${name} animation:`,
+        `Unable to load ${name}:`,
         error
       );
     }
@@ -1894,15 +1953,12 @@ function playAnimation(name) {
     actions[name];
 
   if (!nextAction) {
-    console.warn(
-      `Animation "${name}" is not loaded.`
-    );
-
     return;
   }
 
   if (
-    currentAction === nextAction &&
+    currentAction ===
+      nextAction &&
     nextAction.isRunning()
   ) {
     return;
@@ -1931,8 +1987,8 @@ function playAnimation(name) {
     .forEach((button) => {
       button.classList.toggle(
         "active",
-        button.dataset.animation ===
-          name
+        button.dataset
+          .animation === name
       );
     });
 }
@@ -1945,13 +2001,10 @@ function playAnimation(name) {
 function handleFinishedAnimation(
   event
 ) {
-  const finishedAction =
-    event.action;
-
   if (
-    finishedAction ===
+    event.action ===
       actions.pointing ||
-    finishedAction ===
+    event.action ===
       actions.waving
   ) {
     playAnimation(
@@ -2026,17 +2079,17 @@ function updateCharacterMovement(
     keys.KeyD ||
     keys.ArrowRight;
 
+
   if (turningLeft) {
     character.rotation.y +=
-      rotationSpeed *
-      delta;
+      rotationSpeed * delta;
   }
 
   if (turningRight) {
     character.rotation.y -=
-      rotationSpeed *
-      delta;
+      rotationSpeed * delta;
   }
+
 
   let movementDirection = 0;
 
@@ -2047,6 +2100,7 @@ function updateCharacterMovement(
   if (movingBackward) {
     movementDirection = -1;
   }
+
 
   if (
     movementDirection !== 0
@@ -2068,8 +2122,7 @@ function updateCharacterMovement(
 
     character.position.addScaledVector(
       direction,
-      movementSpeed *
-        delta
+      movementSpeed * delta
     );
 
     if (actions.walking) {
@@ -2112,6 +2165,7 @@ window.addEventListener(
   }
 );
 
+
 window.addEventListener(
   "keyup",
   (event) => {
@@ -2133,11 +2187,8 @@ document
     button.addEventListener(
       "click",
       () => {
-        const animationName =
-          button.dataset.animation;
-
         playAnimation(
-          animationName
+          button.dataset.animation
         );
       }
     );
@@ -2197,6 +2248,10 @@ function animate() {
     delta
   );
 
+  updatePedestrians(
+    delta
+  );
+
   controls.update();
 
   renderer.render(
@@ -2207,7 +2262,7 @@ function animate() {
 
 
 /* =====================================================
-   START APPLICATION
+   START
 ===================================================== */
 
 loadCharacter();
