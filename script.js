@@ -204,6 +204,22 @@ const keys = {};
 
 
 /* =====================================================
+   CAMERA FOLLOW VARIABLES
+===================================================== */
+
+const previousCharacterPosition =
+  new THREE.Vector3();
+
+const characterMovementOffset =
+  new THREE.Vector3();
+
+const cameraTargetPosition =
+  new THREE.Vector3();
+
+let cameraFollowReady = false;
+
+
+/* =====================================================
    MOVEMENT SETTINGS
 ===================================================== */
 
@@ -547,12 +563,12 @@ function loadCharacter() {
 
         /*
          * FBXLoader returns the model directly.
-         * Do not use gltf.scene here.
          */
         character.position.set(0, 0, 0);
 
         /*
-         * Keep the imported FBX orientation unchanged.
+         * Keep this rotation because it shows the
+         * correct side of your character.
          */
         character.rotation.set(0, 0, 0);
 
@@ -574,6 +590,26 @@ function loadCharacter() {
           "finished",
           handleFinishedAnimation
         );
+
+        /*
+         * Initialize camera following after the model
+         * has been positioned.
+         */
+        previousCharacterPosition.copy(
+          character.position
+        );
+
+        cameraTargetPosition.set(
+          character.position.x,
+          character.position.y + 1.4,
+          character.position.z
+        );
+
+        controls.target.copy(
+          cameraTargetPosition
+        );
+
+        cameraFollowReady = true;
 
         /*
          * Show the character immediately. Animation
@@ -754,6 +790,57 @@ function handleFinishedAnimation(event) {
 
 
 /* =====================================================
+   CAMERA FOLLOW
+===================================================== */
+
+function updateCameraFollow() {
+  if (
+    !character ||
+    !cameraFollowReady
+  ) {
+    return;
+  }
+
+  /*
+   * Calculate how far the character moved since the
+   * previous frame.
+   */
+  characterMovementOffset.subVectors(
+    character.position,
+    previousCharacterPosition
+  );
+
+  /*
+   * Move the camera by exactly the same amount.
+   * This preserves the user's OrbitControls angle,
+   * distance and zoom.
+   */
+  camera.position.add(
+    characterMovementOffset
+  );
+
+  /*
+   * Keep the OrbitControls focus point on the upper
+   * body of the character.
+   */
+  cameraTargetPosition.set(
+    character.position.x,
+    character.position.y + 1.4,
+    character.position.z
+  );
+
+  controls.target.lerp(
+    cameraTargetPosition,
+    0.18
+  );
+
+  previousCharacterPosition.copy(
+    character.position
+  );
+}
+
+
+/* =====================================================
    CHARACTER MOVEMENT
 ===================================================== */
 
@@ -833,18 +920,11 @@ function updateCharacterMovement(delta) {
     }
   }
 
-
-  const targetPosition =
-    new THREE.Vector3(
-      character.position.x,
-      character.position.y + 1.4,
-      character.position.z
-    );
-
-  controls.target.lerp(
-    targetPosition,
-    0.08
-  );
+  /*
+   * Move the camera after the character position
+   * has been updated.
+   */
+  updateCameraFollow();
 }
 
 
